@@ -1,0 +1,14 @@
+{% load partials %}
+
+{% startpartial test-partial %}
+TEST-PARTIAL-CONTENT
+{% endpartial %}
+
+
+{% block main %}
+BEGINNING
+{% partial test-partial %}
+MIDDLE
+{% partial test-partial %}
+END
+{% endblock main %}

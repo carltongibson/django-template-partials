@@ -8,10 +8,18 @@ authors = [{name = "Carlton Gibson", email = "carlton.gibson@noumenal.es"}]
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
+dependencies = ["Django"]
 
 [project.urls]
-Home = "https://noumenal.es/django-template-partials/"
+Repository = "https://github.com/carltongibson/django-template-partials/"
+# Docs = "https://noumenal.es/django-template-partials/"
 
+[project.optional-dependencies]
+docs = ["Sphinx"]
+tests = ["coverage", "django_coverage_plugin"]
+
+[tool.coverage.run]
+plugins = ["django_coverage_plugin"]
 
 [tool.flit.module]
 name = "template_partials"
