@@ -32,3 +32,16 @@ class PartialTagsTestCase(TestCase):
         rendered = template.render()
 
         self.assertEqual("TEST-PARTIAL-CONTENT", rendered.strip())
+
+    def test_debug_template(self):
+        class LazyExceptionObject:
+            def __str__(self):
+                raise Exception("Test exception")
+            
+        engine = engines["django"]
+        template = engine.get_template("debug.html")
+        try:
+            template.render({'exception': LazyExceptionObject()})
+        except Exception as e:
+            self.assertEqual(e.template_debug['message'], "Test exception")
+            self.assertEqual(e.template_debug['line'], 4)

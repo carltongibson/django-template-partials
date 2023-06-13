@@ -1,0 +1,10 @@
+{% load partials %}
+
+{% startpartial test-partial %}
+    {{ exception }}
+{% endpartial %}
+
+
+{% block main %}
+    {% partial test-partial %}
+{% endblock main %}
