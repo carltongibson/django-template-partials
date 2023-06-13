@@ -13,6 +13,10 @@ class TemplateProxy:
         self.origin = origin
         self.name = name
 
+    def get_exception_info(self, exception, token):
+        template = self.origin.loader.get_template(self.origin.template_name)
+        return template.get_exception_info(exception, token)
+
     def render(self, context):
         "Display stage -- can be called many times"
         with context.render_context.push_state(self):
