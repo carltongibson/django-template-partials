@@ -93,3 +93,33 @@ Fuller docs and write up still ***COMING SOON***, but the talk explains most of
 it.
 
 Enjoy! 🚀
+
+## Running the tests
+
+Fork, then clone the repo:
+
+```sh
+git clone git@github.com:your-username/django-template-partials.git
+```
+
+Set up a venv:
+
+```sh
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .[tests]
+```
+
+Then you can run the tests with the `just` command runner: 
+
+```sh
+just test
+```
+
+Or with coverage: 
+
+```sh
+just coverage
+```
+
+If you don't have `just` installed, you can look in the `justfile` for a commands that are run.
