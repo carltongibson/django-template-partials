@@ -8,8 +8,6 @@ on:
 
 jobs:
   build:
-    # env:
-    #   PYTHONPATH: 'src'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
