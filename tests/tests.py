@@ -18,6 +18,22 @@ class PartialTagsTestCase(TestCase):
         # Check the rendered content
         self.assertEqual("HERE IS THE TEST CONTENT", rendered.strip())
 
+    def test_startpartial_tag_with_inline(self):
+        template = """
+        {% load partials %}
+        {% startpartial "testing-partial" inline=True %}
+        HERE IS THE TEST CONTENT
+        {% endpartial %}
+        """
+
+        # Compile and render the template
+        engine = engines["django"]
+        t = engine.from_string(template)
+        rendered = t.render()
+
+        # Check the rendered content
+        self.assertEqual("HERE IS THE TEST CONTENT", rendered.strip())
+
     def test_full_template_from_loader(self):
         engine = engines["django"]
         template = engine.get_template("example.html")
@@ -25,13 +41,18 @@ class PartialTagsTestCase(TestCase):
 
         # Check the partial was rendered twice
         self.assertEqual(2, rendered.count("TEST-PARTIAL-CONTENT"))
+        self.assertEqual(1, rendered.count("INLINE-CONTENT"))
 
     def test_just_partial_from_loader(self):
         engine = engines["django"]
+
         template = engine.get_template("example.html#test-partial")
         rendered = template.render()
-
         self.assertEqual("TEST-PARTIAL-CONTENT", rendered.strip())
+
+        template = engine.get_template("example.html#inline-partial")
+        rendered = template.render()
+        self.assertEqual("INLINE-CONTENT", rendered.strip())
 
     def test_debug_template(self):
         class LazyExceptionObject:
