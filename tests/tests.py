@@ -37,7 +37,7 @@ class PartialTagsTestCase(TestCase):
         class LazyExceptionObject:
             def __str__(self):
                 raise Exception("Test exception")
-            
+
         engine = engines["django"]
         template = engine.get_template("debug.html")
         try:
@@ -45,3 +45,13 @@ class PartialTagsTestCase(TestCase):
         except Exception as e:
             self.assertEqual(e.template_debug['message'], "Test exception")
             self.assertEqual(e.template_debug['line'], 4)
+
+    def test_template_source(self):
+        """Partials defer to their source template for source code."""
+        engine = engines["django"]
+        partial = engine.get_template("example.html#test-partial")
+        source_template = engine.get_template("example.html")
+        self.assertEqual(
+            partial.template.source,
+            source_template.template.source,
+        )
