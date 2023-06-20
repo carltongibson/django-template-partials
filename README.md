@@ -79,6 +79,16 @@ END
 {% endblock main %}
 ```
 
+You might want to wrap an existing part of your page, and continue rendering the content inside your partial, use the `inline` argument in that situation:
+
+```html
+{% block main %}
+{% startpartial inline-partial inline=True %}
+CONTENT
+{% endpartial %}
+{% endblock main %}
+```
+
 `django-template-partials` is also integrated with the template loader, so you can pass a template plus a partial name to the loader to have just that part rendered:
 
 ```python
