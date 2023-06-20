@@ -1,9 +1,6 @@
-import django
-from django.template import base, engines
-import django.template.backends.django
+from django.template import engines
 from django.test import TestCase
 
-from template_partials.templatetags.partials import TemplateProxy
 
 class PartialTagsTestCase(TestCase):
     def test_partial_tags(self):
@@ -50,14 +47,11 @@ class PartialTagsTestCase(TestCase):
             self.assertEqual(e.template_debug['line'], 4)
 
     def test_template_source(self):
+        """Partials defer to their source template for source code."""
         engine = engines["django"]
-        template = engine.get_template("example.html#test-partial")
-        self.assertIsInstance(template, django.template.backends.django.Template)
-        self.assertIsInstance(template.template, TemplateProxy)
-        self.assertTrue(hasattr(template.template, "source"))
-
-        # Regular template
-        template = engine.get_template("example.html")
-        self.assertIsInstance(template, django.template.backends.django.Template)
-        self.assertIsInstance(template.template, base.Template)
-        self.assertTrue(hasattr(template.template,"source"))
+        partial = engine.get_template("example.html#test-partial")
+        source_template = engine.get_template("example.html")
+        self.assertEqual(
+            partial.template.source,
+            source_template.template.source,
+        )
