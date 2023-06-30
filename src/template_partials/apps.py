@@ -1,13 +1,16 @@
 """
 django-template-partials
 
-Reusable named inline partials for the Django Template Language.
+App configuration to set up a partials loader automatically.
 """
 from django.apps import AppConfig
 from django.conf import settings
 
 
 class LoaderAppConfig(AppConfig):
+    """
+    This, the default configuration, does the automatic setup of a partials loader.
+    """
     name = "template_partials"
     default = True
 
@@ -31,4 +34,8 @@ class LoaderAppConfig(AppConfig):
 
 
 class BaseAppConfig(AppConfig):
+    """
+    This, the non-default configuration, allows the user to opt-out of the automatic configuration. They just need to
+    add "template_partials.apps.BaseAppConfig" to INSTALLED_APPS instead of "template_partials".
+    """
     name = "template_partials"
