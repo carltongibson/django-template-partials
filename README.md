@@ -62,8 +62,18 @@ template:
 ```html
 {% load partials %}
 
-{% startpartial test-partial %}
-TEST-PARTIAL-CONTENT
+
+{% startpartial table-row %}
+<tr>
+    <td>{{ product.name }}</td>
+</tr>
+{% endpartial %}
+
+
+{% startpartial table-rows %}
+    {% for product in products %}
+        {% partial table-row %}
+    {% endfor %}
 {% endpartial %}
 ```
 
@@ -71,11 +81,11 @@ Then later you can reuse it:
 
 ```
 {% block main %}
-BEGINNING
-{% partial test-partial %}
-MIDDLE
-{% partial test-partial %}
-END
+<table>
+    <tbody>
+    {% partial table-rows %}
+    </tbody>
+</table>
 {% endblock main %}
 ```
 
