@@ -90,17 +90,16 @@ Then later you can reuse it:
 ```
 
 
-In your views you can reference all rows like this
+In your views you can return all rows like this
 ```
 self.template_name = "products.html#table-rows
 ```
-to return all the rows at once
 
-or
+or one row at a time.
 ```
 self.template_name = "products.html#table-row
 ```
-to return one row at a time.
+
 
 
 `django-template-partials` is also integrated with the template loader, so you can pass a template plus a partial name to the loader to have just that part rendered:
