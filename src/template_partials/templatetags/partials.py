@@ -1,3 +1,5 @@
+import warnings
+
 from django import template
 
 register = template.Library()
@@ -56,24 +58,35 @@ class RenderPartialNode(template.Node):
         nodelist = self.origin.partial_contents[self.partial_name]
         return nodelist.render(context)
 
-
-@register.tag(name="startpartial")
-def startpartial_func(parser, token):
+@register.tag(name="partialdef")
+def partialdef_func(parser, token):
     """
     Declare a partial that can be used later in the template.
 
     Usage:
 
-        {% startpartial "partial_name" %}
+        {% partialdef "partial_name" %}
 
         Partial content goes here
 
-        {% endpartial %}
+        {% endpartialdef %}
 
     Stores the nodelist in the context under the key "partial_contents" and can
     be retrieved using the {% partial %} tag.
     """
-    # Parse the tag
+    _define_partial(parser, token, "endpartialdef")
+    return DefinePartialNode
+
+@register.tag(name="startpartial")
+def startpartial_func(parser, token):
+    warnings.warn(
+        "The 'startpartial' tag is deprecated; use 'partialdef' instead.",
+        DeprecationWarning
+    )
+    _define_partial(parser, token, "endpartial")
+    return DefinePartialNode
+
+def _define_partial(parser, token, end_tag):
     try:
         tag_name, partial_name = token.split_contents()
     except ValueError:
@@ -81,8 +94,7 @@ def startpartial_func(parser, token):
             "%r tag requires a single argument" % token.contents.split()[0]
         )
 
-    # Parse the content until the {% endpartial %} tag
-    nodelist = parser.parse(("endpartial",))
+    nodelist = parser.parse((end_tag,))
     parser.delete_first_token()
 
     if not hasattr(parser.origin, "partial_contents"):
@@ -92,7 +104,6 @@ def startpartial_func(parser, token):
     )
 
     return DefinePartialNode(partial_name, nodelist)
-
 
 # Define the partial tag to render the partial content.
 @register.tag(name="partial")
