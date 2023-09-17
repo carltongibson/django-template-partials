@@ -130,5 +130,3 @@ def partial_func(parser, token):
         )
 
     return RenderPartialNode(partial_name, origin=parser.origin)
-
-    pass
