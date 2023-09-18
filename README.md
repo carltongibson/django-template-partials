@@ -1,5 +1,7 @@
 # django-template-partials
 
+[![pypi](https://img.shields.io/pypi/v/django-template-partials.svg)](https://pypi.org/project/django-template-partials/)
+
 Reusable named inline partials for the Django Template Language.
 
 ## Watch the talk
