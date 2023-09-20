@@ -74,8 +74,7 @@ def partialdef_func(parser, token):
     Stores the nodelist in the context under the key "partial_contents" and can
     be retrieved using the {% partial %} tag.
     """
-    _define_partial(parser, token, "endpartialdef")
-    return DefinePartialNode
+    return _define_partial(parser, token, "endpartialdef")
 
 @register.tag(name="startpartial")
 def startpartial_func(parser, token):
@@ -83,8 +82,7 @@ def startpartial_func(parser, token):
         "The 'startpartial' tag is deprecated; use 'partialdef' instead.",
         DeprecationWarning
     )
-    _define_partial(parser, token, "endpartial")
-    return DefinePartialNode
+    return _define_partial(parser, token, "endpartial")
 
 def _define_partial(parser, token, end_tag):
     try:
