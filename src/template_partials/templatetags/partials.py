@@ -25,7 +25,9 @@ class TemplateProxy:
         return template.source
 
     def render(self, context):
-        "Display stage -- can be called many times"
+        """
+        Display stage -- can be called many times
+        """
         with context.render_context.push_state(self):
             if context.template is None:
                 with context.bind_template(self):
@@ -36,13 +38,17 @@ class TemplateProxy:
 
 
 class DefinePartialNode(template.Node):
-    def __init__(self, partial_name, nodelist):
+    def __init__(self, partial_name, inline, nodelist):
         self.partial_name = partial_name
+        self.inline = inline
         self.nodelist = nodelist
 
     def render(self, context):
         """Set content into context and return empty string"""
-        return ""
+        if self.inline:
+            return self.nodelist.render(context)
+        else:
+            return ""
 
 
 class RenderPartialNode(template.Node):
@@ -85,13 +91,25 @@ def startpartial_func(parser, token):
     return _define_partial(parser, token, "endpartial")
 
 def _define_partial(parser, token, end_tag):
-    try:
-        tag_name, partial_name = token.split_contents()
-    except ValueError:
+    # Parse the tag
+    tokens = token.split_contents()
+
+    # check we have the expected number of tokens before trying to assign them
+    # via indexes
+    if len(tokens) not in (2, 3):
         raise template.TemplateSyntaxError(
-            "%r tag requires a single argument" % token.contents.split()[0]
+            "%r tag requires 2-3 arguments" % token.contents.split()[0]
         )
 
+    partial_name = tokens[1]
+
+    try:
+        inline = tokens[2]
+    except IndexError:
+        # the inline argument is optional, so fallback to not using it
+        inline = False
+
+    # Parse the content until the end tag (`endpartialdef` or deprecated `endpartial`)
     nodelist = parser.parse((end_tag,))
     parser.delete_first_token()
 
@@ -101,13 +119,14 @@ def _define_partial(parser, token, end_tag):
         nodelist, parser.origin, partial_name
     )
 
-    return DefinePartialNode(partial_name, nodelist)
+    return DefinePartialNode(partial_name, inline, nodelist)
+
 
 # Define the partial tag to render the partial content.
 @register.tag(name="partial")
 def partial_func(parser, token):
     """
-    Render a partial that was previously declared using the {% startpartial %} tag.
+    Render a partial that was previously declared using the {% partialdef %} or {% startpartial %} tag.
 
     Usage:
 
@@ -122,5 +141,3 @@ def partial_func(parser, token):
         )
 
     return RenderPartialNode(partial_name, origin=parser.origin)
-
-    pass

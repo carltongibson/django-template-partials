@@ -1,5 +1,7 @@
 # django-template-partials
 
+[![pypi](https://img.shields.io/pypi/v/django-template-partials.svg)](https://pypi.org/project/django-template-partials/)
+
 Reusable named inline partials for the Django Template Language.
 
 ## Watch the talk
@@ -76,6 +78,16 @@ BEGINNING
 MIDDLE
 {% partial test-partial %}
 END
+{% endblock main %}
+```
+
+You might want to wrap an existing part of your page, and continue rendering the content inside your partial, use the `inline` argument in that situation:
+
+```html
+{% block main %}
+{% startpartial inline-partial inline=True %}
+CONTENT
+{% endpartial %}
 {% endblock main %}
 ```
 
