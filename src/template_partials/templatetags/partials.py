@@ -104,11 +104,19 @@ def startpartial_func(parser, token):
     nodelist = parser.parse(("endpartial",))
     parser.delete_first_token()
 
-    if not hasattr(parser.origin, "partial_contents"):
-        parser.origin.partial_contents = {}
-    parser.origin.partial_contents[partial_name] = TemplateProxy(
-        nodelist, parser.origin, partial_name
-    )
+    # Store the partial nodelist in the parser.extra_data attribute, if available. (Django 5.1+)
+    # Otherwise, store it on the origin.
+    if hasattr(parser, "extra_data"):
+        parser.extra_data.setdefault("template-partials", {})
+        parser.extra_data["template-partials"][partial_name] = TemplateProxy(
+            nodelist, parser.origin, partial_name
+        )
+    else:
+        if not hasattr(parser.origin, "partial_contents"):
+            parser.origin.partial_contents = {}
+        parser.origin.partial_contents[partial_name] = TemplateProxy(
+            nodelist, parser.origin, partial_name
+        )
 
     return DefinePartialNode(partial_name, inline, nodelist)
 
