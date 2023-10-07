@@ -2,3 +2,4 @@ dist
 *.pyc
 
 .idea
+.tox
