@@ -1,3 +1,5 @@
+import warnings
+
 from django.template import engines
 from django.test import TestCase
 
@@ -6,7 +8,7 @@ class PartialTagsTestCase(TestCase):
     def test_partial_tags(self):
         template = """
         {% load partials %}
-        {% startpartial "testing-partial" %}HERE IS THE TEST CONTENT{% endpartial %}
+        {% partialdef "testing-partial" %}HERE IS THE TEST CONTENT{% endpartialdef %}
         {% partial "testing-partial" %}
         """
 
@@ -18,12 +20,35 @@ class PartialTagsTestCase(TestCase):
         # Check the rendered content
         self.assertEqual("HERE IS THE TEST CONTENT", rendered.strip())
 
-    def test_startpartial_tag_with_inline(self):
+    def test_deprecated_startpartial_tag(self):
         template = """
         {% load partials %}
-        {% startpartial "testing-partial" inline=True %}
+        {% startpartial "deprecated-testing-partial" %}DEPRECATED TEST CONTENT{% endpartial %}
+        {% partial "deprecated-testing-partial" %}
+        """
+
+        # Capture warnings
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+
+            # Compile and render the template
+            engine = engines["django"]
+            t = engine.from_string(template)
+            rendered = t.render()
+
+            # Check for deprecation warning
+            self.assertTrue(any(issubclass(warn.category, DeprecationWarning) for warn in w))
+
+        # Check the rendered content
+        self.assertEqual("DEPRECATED TEST CONTENT", rendered.strip())
+
+    def test_partialdef_tag_with_inline(self):
+        template = """
+        {% load partials %}
+        {% partialdef "testing-partial" inline=True %}
         HERE IS THE TEST CONTENT
-        {% endpartial %}
+        {% endpartialdef %}
         """
 
         # Compile and render the template

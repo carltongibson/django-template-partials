@@ -1,3 +1,5 @@
+import warnings
+
 from django import template
 
 register = template.Library()
@@ -57,18 +59,18 @@ class RenderPartialNode(template.Node):
         return self.nodelist.render(context)
 
 
-@register.tag(name="startpartial")
-def startpartial_func(parser, token):
+@register.tag(name="partialdef")
+def partialdef_func(parser, token):
     """
     Declare a partial that can be used later in the template.
 
     Usage:
 
-        {% startpartial "partial_name" %}
+        {% partialdef "partial_name" %}
 
         Partial content goes here
 
-        {% endpartial %}
+        {% endpartialdef %}
 
     Stores the nodelist in the context under the key "partial_contents" and can
     be retrieved using the {% partial %} tag.
@@ -76,6 +78,19 @@ def startpartial_func(parser, token):
     The optional inline=True argument will render the contents of the partial
     where it is defined.
     """
+    return _define_partial(parser, token, "endpartialdef")
+
+
+@register.tag(name="startpartial")
+def startpartial_func(parser, token):
+    warnings.warn(
+        "The 'startpartial' tag is deprecated; use 'partialdef' instead.",
+        DeprecationWarning,
+    )
+    return _define_partial(parser, token, "endpartial")
+
+
+def _define_partial(parser, token, end_tag):
     # Parse the tag
     tokens = token.split_contents()
 
@@ -94,8 +109,8 @@ def startpartial_func(parser, token):
         # the inline argument is optional, so fallback to not using it
         inline = False
 
-    # Parse the content until the {% endpartial %} tag
-    nodelist = parser.parse(("endpartial",))
+    # Parse the content until the end tag (`endpartialdef` or deprecated `endpartial`)
+    nodelist = parser.parse((end_tag,))
     parser.delete_first_token()
 
     # Store the partial nodelist in the parser.extra_data attribute, if available. (Django 5.1+)
@@ -119,7 +134,7 @@ def startpartial_func(parser, token):
 @register.tag(name="partial")
 def partial_func(parser, token):
     """
-    Render a partial that was previously declared using the {% startpartial %} tag.
+    Render a partial that was previously declared using the {% partialdef %} or {% startpartial %} tag.
 
     Usage:
 

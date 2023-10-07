@@ -1,8 +1,8 @@
 {% load partials %}
 
-{% startpartial test-partial %}
+{% partialdef test-partial %}
 TEST-PARTIAL-CONTENT
-{% endpartial %}
+{% endpartialdef %}
 
 
 {% block main %}
@@ -13,6 +13,6 @@ MIDDLE
 END
 {% endblock main %}
 
-{% startpartial inline-partial inline=True %}
+{% partialdef inline-partial inline=True %}
 INLINE-CONTENT
-{% endpartial %}
+{% endpartialdef %}
