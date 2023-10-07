@@ -1,3 +1,5 @@
 dist
 *.pyc
 
+.idea
+.tox
