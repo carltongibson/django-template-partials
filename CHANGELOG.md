@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 23.3 (UNRELEASED)
+## 23.3 (2023-10-08)
 
 This is the first major update since the initial release. It includes a number
 of bug fixes and adjustments from the feedback received.
