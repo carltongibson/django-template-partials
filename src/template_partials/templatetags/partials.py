@@ -52,11 +52,17 @@ class DefinePartialNode(template.Node):
 
 
 class RenderPartialNode(template.Node):
-    def __init__(self, nodelist):
-        self.nodelist = nodelist
+    def __init__(self, partial_name, origin):
+        self.partial_name = partial_name
+        self.origin = origin
 
     def render(self, context):
-        return self.nodelist.render(context)
+        """Render the partial content from the context"""
+        # Use the origin to get the partial content, because it's per Template,
+        # and available to the Parser.
+        # TODO: raise a better error here.
+        nodelist = self.origin.partial_contents[self.partial_name]
+        return nodelist.render(context)
 
 
 @register.tag(name="partialdef")
@@ -113,19 +119,11 @@ def _define_partial(parser, token, end_tag):
     nodelist = parser.parse((end_tag,))
     parser.delete_first_token()
 
-    # Store the partial nodelist in the parser.extra_data attribute, if available. (Django 5.1+)
-    # Otherwise, store it on the origin.
-    if hasattr(parser, "extra_data"):
-        parser.extra_data.setdefault("template-partials", {})
-        parser.extra_data["template-partials"][partial_name] = TemplateProxy(
-            nodelist, parser.origin, partial_name
-        )
-    else:
-        if not hasattr(parser.origin, "partial_contents"):
-            parser.origin.partial_contents = {}
-        parser.origin.partial_contents[partial_name] = TemplateProxy(
-            nodelist, parser.origin, partial_name
-        )
+    if not hasattr(parser.origin, "partial_contents"):
+        parser.origin.partial_contents = {}
+    parser.origin.partial_contents[partial_name] = TemplateProxy(
+        nodelist, parser.origin, partial_name
+    )
 
     return DefinePartialNode(partial_name, inline, nodelist)
 
@@ -148,11 +146,4 @@ def partial_func(parser, token):
             "%r tag requires a single argument" % token.contents.split()[0]
         )
 
-    try:
-        extra_data = getattr(parser, "extra_data")
-        partial_contents = extra_data.get("template-partials", {})
-    except AttributeError:
-        partial_contents = parser.origin.partial_contents
-
-    nodelist = partial_contents[partial_name]
-    return RenderPartialNode(nodelist)
+    return RenderPartialNode(partial_name, origin=parser.origin)
