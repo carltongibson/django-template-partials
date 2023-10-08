@@ -39,17 +39,11 @@ class Loader(BaseLoader):
         if not partial_name:
             return template
 
-        # From Django 5.1, the template has the extra_data attribute.
-        # Use that, falling back to reference on the origin.
         try:
-            extra_data = getattr(template, "extra_data")
-            partial_contents = extra_data.get("template-partials", {})
+            partial_contents = template.origin.partial_contents
         except AttributeError:
-            try:
-                partial_contents = template.origin.partial_contents
-            except AttributeError:
-                # No partials defined on this template.
-                raise TemplateDoesNotExist(partial_name, tried=[template_name])
+            # No partials defined on this template.
+            raise TemplateDoesNotExist(partial_name, tried=[template_name])
         try:
             partial = partial_contents[partial_name]
         except KeyError:
