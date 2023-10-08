@@ -6,8 +6,7 @@ Reusable named inline partials for the Django Template Language.
 
 ## Watch the talk
 
-This is the `django-template-partials` package I discussed in my DjangoCon Europe 2023
-talk in Edinburgh.
+I introduced `django-template-partials` in my DjangoCon Europe 2023 talk in Edinburgh.
 
 For a quick introduction, you can watch the video on YouTube. 🍿
 
@@ -21,44 +20,35 @@ Install with pip:
 pip install django-template-partials
 ```
 
-Then set up your project, as per this example:
+Then add to `INSTALLED_APPS` and you're good go.
 
 ```python
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "OPTIONS": {
-            "context_processors": [
-               ...,
-            ],
-            "builtins": [
-                # If you want to avoid doing {% load partials %} in your templates
-                "template_partials.templatetags.partials"
-            ],
-        },
-    },
-]
 INSTALLED_APPS = [
     "template_partials",
     ...,
 ]
 ```
 
-## Usage
+See <a href="#advanced-configuration">Advanced configuration (below)</a> for
+more options.
 
-Load the `partials` tags (if you haven't specified them via "builtins" as suggested above)
-and define a re-usable partial at the top of your template:
+Please see the [CHANGELOG](./CHANGELOG.md) if you are upgrading from a previous version.
+
+## Basic Usage
+
+Once installed, load the `partials` tags and define a re-usable partial at the top of your template:
 
 ```html
 {% load partials %}
 
-{% startpartial test-partial %}
+{% partialdef test-partial %}
 TEST-PARTIAL-CONTENT
-{% endpartial %}
+{% endpartialdef %}
 ```
 
-Then later you can reuse it:
+### Fragment Re-use
+
+With the partial defined, you can reuse it multiple times later:
 
 ```
 {% block main %}
@@ -70,32 +60,100 @@ END
 {% endblock main %}
 ```
 
-You might want to wrap an existing part of your page, and continue rendering the content inside your partial, use the `inline` argument in that situation:
+The partial content will be rendered in each time the named partial is used.
 
-```html
-{% block main %}
-{% startpartial inline-partial inline=True %}
-CONTENT
-{% endpartial %}
-{% endblock main %}
-```
 
-`django-template-partials` is also integrated with the template loader, so you can pass a template plus a partial name to the loader to 
-have just that part rendered:
+### Via the template loader
+
+`django-template-partials` is also integrated with the template loader, so you
+can pass a template plus a partial name to the loader to have just that part
+rendered:
 
 ```python
+# In view handler…
 self.template_name = "example.html#test-partial"
 ```
 
 The rest of your view logic remains the same.
 
-## Automatic configuration of template loader integration
+This means that you can also use the partial with the `include` tag:
 
-By default, if you just add `"template_partials"` to your `INSTALLED_APPS`, a template loader which
-can handle partials will be automatically configured for any template engine with a backend of
-`"django.template.backends.django.DjangoTemplates"`.
+```html+django
+{% include "example.html#test-partial" %}
+```
 
-If you want to avoid this autoconfiguration, set up your `INSTALLED_APPS` like this:
+### Outputting inline
+
+You might want to wrap an existing part of your page, and continue rendering
+the content inside your partial, use the `inline` argument in that situation:
+
+```html
+{% block main %}
+{% partialdef inline-partial inline=True %}
+CONTENT
+{% endpartialdef %}
+{% endblock main %}
+```
+
+### Controlling the context
+
+A template partial is rendered with the current context.
+
+This means it works in, for example, a loop as expected:
+
+```html+django
+{% for object in object_list %}
+    {% partial test-partial %}
+{% endfor %}
+```
+
+If you need to adjust the context, use the `with` tag as normal:
+
+```html+django
+{% with name=value othername=othervalue %}
+    {% partial test-partial %}
+{% endwith %}
+```
+
+#### Capturing output
+
+Rendering a partial — say a pagination widget — may be computationally expensive.
+
+It's out-of-scope for `django-template-partials` to capture the generated HTML
+to the context, but other options exist, such as the [Slipper's library
+fragment tag](https://mitchel.me/slippers/docs/template-tags-filters/#fragment),
+that allows exactly this behaviour.
+
+
+### Adding partials to template builtins.
+
+Maybe you don't want to load the partials tags in every template…
+
+```html+django
+{% load partials %}
+```
+
+The [Django Template Language's OPTIONS](https://docs.djangoproject.com/en/4.2/topics/templates/#django.template.backends.django.DjangoTemplates)
+allow you to add to the `builtins` that are loaded for every template. You can
+add the partials tags there:
+
+```
+OPTIONS = {
+    "builtins": ["template_partials.templatetags.partials"],
+}
+```
+
+
+That's the basics. Enjoy! 🚀
+
+
+<h2 id="advanced-configuration">Advanced configuration</h2>
+
+By default, adding `"template_partials"` to your `INSTALLED_APPS` will
+configure any Django template backend to use the partials template loader.
+
+If you need to control this behaviour, you can use an alternative
+`SimpleAppConfig`, which **will not** adjust your `TEMPLATES` setting:
 
 ```python
 INSTALLED_APPS = [
@@ -103,10 +161,14 @@ INSTALLED_APPS = [
     ...,
 ]
 ```
-If you do this, you will need to configure the template loader yourself. For this, a `wrap_loaders()` function is
-provided, and it can be used to configure any specific template engine instance with a loader that handles partials.
-For example, you can use the [`NAME`](https://docs.djangoproject.com/en/4.2/ref/settings/#std-setting-TEMPLATES-NAME)
-key:
+
+If you use `SimpleAppConfig`, you will need to configure the template loader yourself.
+
+A `wrap_loaders()` function is available, and can be used to configure any
+specific template engine instance with the template partials loader.
+
+You can use the backend's [`NAME`](https://docs.djangoproject.com/en/4.2/ref/settings/#std-setting-TEMPLATES-NAME)
+to `wrap_loaders()` to add the partial loader just for that backend:
 
 ```python
 from template_partials.apps import wrap_loaders
@@ -125,10 +187,13 @@ TEMPLATES = [
 
 wrap_loaders("myname")
 ```
-Note that if `NAME` isn't provided, the penultimate element of the `BACKEND` value is used - for example,
-`"django.template.backends.django.DjangoTemplates"` would be equivalent to a `NAME` of `"django"`.
 
-What `wrap_loaders` does is something like this:
+If the `NAME` isn't provided, the penultimate element of the `BACKEND` value is
+used - for example, `"django.template.backends.django.DjangoTemplates"` would
+be equivalent to a `NAME` of `"django"`.
+
+Under the hood, `wrap_loaders()` is equivalent to explicitly defining the
+`loaders` by-hand. Assuming defaults…
 
 ```python
 from django.conf import settings
@@ -143,14 +208,9 @@ partial_loaders = [("template_partials.loader.Loader", cached_loaders)]
 settings.TEMPLATES[...]['OPTIONS']['loaders'] = partial_loaders
 ```
 
-where `TEMPLATES[...]` is the entry in `TEMPLATES` with the `NAME` matching what's passed to `wrap_loaders()`.
+… where `TEMPLATES[...]` is the entry in `TEMPLATES` with the `NAME` matching
+that passed to `wrap_loaders()`.
 
-## Documentation
-
-Fuller docs and write up still ***COMING SOON***, but the talk explains most of
-it.
-
-Enjoy! 🚀
 
 ## Running the tests
 
@@ -180,4 +240,5 @@ Or with coverage:
 just coverage
 ```
 
-If you don't have `just` installed, you can look in the `justfile` for a commands that are run.
+If you don't have `just` installed, you can look in the `justfile` for a
+commands that are run.
