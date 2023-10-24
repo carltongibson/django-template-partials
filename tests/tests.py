@@ -1,7 +1,31 @@
 import warnings
 
-from django.template import engines
-from django.test import TestCase
+import django.template
+from django.test import TestCase, override_settings
+from django.template import engines, EngineHandler
+
+from template_partials.apps import wrap_loaders
+
+
+@override_settings(
+    TEMPLATES=[
+        {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "APP_DIRS": True,
+        },
+    ]
+)
+class SimpleAppConfigTestCase(TestCase):
+    def test_wrap_loaders(self):
+        django.template.engines = EngineHandler()
+
+        outermost_loader = django.template.engines["django"].engine.loaders[0][0]
+        assert outermost_loader != "template_partials.loader.Loader"
+
+        wrap_loaders("django")
+
+        outermost_loader = django.template.engines["django"].engine.loaders[0][0]
+        assert outermost_loader == "template_partials.loader.Loader"
 
 
 class PartialTagsTestCase(TestCase):
