@@ -3,6 +3,9 @@ django-template-partials
 
 App configuration to set up a partials loader automatically.
 """
+from contextlib import suppress
+import django.template
+import django.contrib.admin
 from django.apps import AppConfig
 from django.conf import settings
 
@@ -32,6 +35,11 @@ def wrap_loaders(name):
                 partial_loaders = [("template_partials.loader.Loader", cached_loaders)]
                 template_config["OPTIONS"]["loaders"] = partial_loaders
             break
+
+    # Force re-evaluation of settings.TEMPLATES because EngineHandler caches it.
+    with suppress(AttributeError):
+        del django.template.engines.templates
+        django.template.engines._engines = {}
 
 
 class LoaderAppConfig(AppConfig):
