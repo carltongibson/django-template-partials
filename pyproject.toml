@@ -4,10 +4,21 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "django-template-partials"
-authors = [{name = "Carlton Gibson", email = "carlton.gibson@noumenal.es"}]
+authors = [{ name = "Carlton Gibson", email = "carlton.gibson@noumenal.es" }]
 readme = "README.md"
-license = {file = "LICENSE"}
-classifiers = ["License :: OSI Approved :: MIT License"]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+]
 dynamic = ["version", "description"]
 dependencies = ["Django"]
 
