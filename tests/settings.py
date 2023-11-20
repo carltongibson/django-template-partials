@@ -1,3 +1,5 @@
+from re import U
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -28,3 +30,4 @@ DATABASES = {
         "NAME": ":memory:",
     },
 }
+USE_TZ = True
