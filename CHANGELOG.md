@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 23.4 (2023-11-20)
+
+* Fixed a bug automatically wrapping the template loaders when another installed
+  app had already instantiated the template engine.
+
+  Thanks to Jannis Vajen.
+
 ## 23.3 (2023-10-08)
 
 This is the first major update since the initial release. It includes a number
