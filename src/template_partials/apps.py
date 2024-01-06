@@ -25,10 +25,13 @@ def wrap_loaders(name):
             )
             if not already_configured:
                 template_config.pop("APP_DIRS", None)
-                default_loaders = [
-                    "django.template.loaders.filesystem.Loader",
-                    "django.template.loaders.app_directories.Loader",
-                ]
+                try:
+                    default_loaders = loaders[0][1]
+                except IndexError:
+                    default_loaders = [
+                        "django.template.loaders.filesystem.Loader",
+                        "django.template.loaders.app_directories.Loader",
+                    ]
                 cached_loaders = [
                     ("django.template.loaders.cached.Loader", default_loaders)
                 ]
