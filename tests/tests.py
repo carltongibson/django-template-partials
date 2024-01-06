@@ -7,15 +7,15 @@ from django.template import engines, EngineHandler
 from template_partials.apps import wrap_loaders
 
 
-@override_settings(
-    TEMPLATES=[
-        {
-            "BACKEND": "django.template.backends.django.DjangoTemplates",
-            "APP_DIRS": True,
-        },
-    ]
-)
 class SimpleAppConfigTestCase(TestCase):
+    @override_settings(
+        TEMPLATES=[
+            {
+                "BACKEND": "django.template.backends.django.DjangoTemplates",
+                "APP_DIRS": True,
+            },
+        ]
+    )
     def test_wrap_loaders(self):
         django.template.engines = EngineHandler()
 
@@ -26,6 +26,37 @@ class SimpleAppConfigTestCase(TestCase):
 
         outermost_loader = django.template.engines["django"].engine.loaders[0][0]
         assert outermost_loader == "template_partials.loader.Loader"
+
+    @override_settings(
+        TEMPLATES=[
+            {
+                "BACKEND": "django.template.backends.django.DjangoTemplates",
+                "OPTIONS": {
+                    "loaders": [(
+                        "django.template.loaders.cached.Loader",
+                        [
+                            "django.template.loaders.filesystem.Loader",
+                            "django.template.loaders.app_directories.Loader",
+                            "custom.custom_loader.Loader",
+                        ],
+                    )],
+                },
+            },
+        ]
+    )
+    def test_wrap_loaders_with_custom_config(self):
+        django.template.engines = EngineHandler()
+
+        outermost_loader = django.template.engines["django"].engine.loaders[0][0]
+        assert outermost_loader != "template_partials.loader.Loader"
+        assert len(django.template.engines["django"].engine.loaders[0][1]) == 3
+
+        wrap_loaders("django")
+
+        outermost_loader = django.template.engines["django"].engine.loaders[0][0]
+        assert outermost_loader == "template_partials.loader.Loader"
+        assert len(django.template.engines["django"].engine.loaders[0][1][0][1]) == 3
+        assert django.template.engines["django"].engine.loaders[0][1][0][1][2].startswith("custom")
 
 
 class PartialTagsTestCase(TestCase):
