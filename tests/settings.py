@@ -1,5 +1,3 @@
-from re import U
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
