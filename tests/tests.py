@@ -62,7 +62,9 @@ class PartialTagsTestCase(TestCase):
             rendered = t.render()
 
             # Check for deprecation warning
-            self.assertTrue(any(issubclass(warn.category, DeprecationWarning) for warn in w))
+            self.assertTrue(
+                any(issubclass(warn.category, DeprecationWarning) for warn in w)
+            )
 
         # Check the rendered content
         self.assertEqual("DEPRECATED TEST CONTENT", rendered.strip())
@@ -111,10 +113,10 @@ class PartialTagsTestCase(TestCase):
         engine = engines["django"]
         template = engine.get_template("debug.html")
         try:
-            template.render({'exception': LazyExceptionObject()})
+            template.render({"exception": LazyExceptionObject()})
         except Exception as e:
-            self.assertEqual(e.template_debug['message'], "Test exception")
-            self.assertEqual(e.template_debug['line'], 4)
+            self.assertEqual(e.template_debug["message"], "Test exception")
+            self.assertEqual(e.template_debug["line"], 4)
 
     def test_template_source(self):
         """Partials defer to their source template for source code."""
@@ -144,7 +146,9 @@ class ChildCachedLoaderTest(TestCase):
         partial_loader = engine.template_loaders[0]
         self.assertEqual(type(partial_loader).__module__, "template_partials.loader")
         cached_loader = partial_loader.loaders[0]
-        self.assertEqual(type(cached_loader).__module__, "django.template.loaders.cached")
+        self.assertEqual(
+            type(cached_loader).__module__, "django.template.loaders.cached"
+        )
         self.assertEqual(len(cached_loader.get_template_cache), 0)
         engine.get_template("example.html")
         self.assertEqual(len(cached_loader.get_template_cache), 1)
