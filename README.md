@@ -32,7 +32,7 @@ INSTALLED_APPS = [
 See <a href="#advanced-configuration">Advanced configuration (below)</a> for
 more options.
 
-Please see the [CHANGELOG](./CHANGELOG.md) if you are upgrading from a previous version.
+Please see the [CHANGELOG](https://github.com/carltongibson/django-template-partials/blob/main/CHANGELOG.md) if you are upgrading from a previous version.
 
 ## Basic Usage
 
