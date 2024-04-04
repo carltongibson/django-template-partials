@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 24.1 (2024-04-04)
+
+* Fixed a bug in how the partial loader called down to the cached loader when
+  present.
+
+  Thanks to Marco Garbelini.
+
 ## 23.4 (2023-11-20)
 
 * Fixed a bug automatically wrapping the template loaders when another installed

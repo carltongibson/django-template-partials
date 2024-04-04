@@ -1,7 +1,7 @@
 """
 django-template-partials
 
-Reusable named inline partials for the Django Template Language.
+Reusable named inline-partials for the Django Template Language.
 """
 
-__version__ = "23.4"
+__version__ = "24.1"
