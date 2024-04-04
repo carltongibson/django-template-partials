@@ -125,3 +125,26 @@ class PartialTagsTestCase(TestCase):
             partial.template.source,
             source_template.template.source,
         )
+
+    def test_chained_exception_forwarded(self):
+        """TemplateDoesNotExist exceptions are chained with the tried attribute."""
+        engine = engines["django"]
+        with self.assertRaises(django.template.TemplateDoesNotExist) as ex:
+            engine.get_template("not_there.html#not-a-partial")
+
+        self.assertTrue(len(ex.exception.tried) > 0)
+        origin, _ = ex.exception.tried[0]
+        self.assertEqual(origin.template_name, "not_there.html")
+
+
+class ChildCachedLoaderTest(TestCase):
+    def test_child_cached_loader(self):
+        wrap_loaders("django")
+        engine = engines["django"].engine
+        partial_loader = engine.template_loaders[0]
+        self.assertEqual(type(partial_loader).__module__, "template_partials.loader")
+        cached_loader = partial_loader.loaders[0]
+        self.assertEqual(type(cached_loader).__module__, "django.template.loaders.cached")
+        self.assertEqual(len(cached_loader.get_template_cache), 0)
+        engine.get_template("example.html")
+        self.assertEqual(len(cached_loader.get_template_cache), 1)

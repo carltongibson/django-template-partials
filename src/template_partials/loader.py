@@ -1,3 +1,4 @@
+from django.template.loaders import cached
 from django.template import TemplateDoesNotExist
 from django.template.loaders.base import Loader as BaseLoader
 
@@ -33,8 +34,13 @@ class Loader(BaseLoader):
         """
         template_name, _, partial_name = template_name.partition("#")
 
-        # May raise TemplateDoesNotExist
-        template = super().get_template(template_name, skip)
+        # Find template from child loaders.
+        # The cached loader requires special handling.
+        # May raise TemplateDoesNotExist.
+        if len(self.loaders) == 1 and isinstance(self.loaders[0], cached.Loader):
+            template = self.loaders[0].get_template(template_name, skip)
+        else:
+            template = super().get_template(template_name, skip)
 
         if not partial_name:
             return template
