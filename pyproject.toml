@@ -24,6 +24,7 @@ dependencies = ["Django"]
 
 [project.urls]
 Repository = "https://github.com/carltongibson/django-template-partials/"
+Changelog = "https://github.com/carltongibson/django-template-partials/blob/main/CHANGELOG.md"
 # Docs = "https://noumenal.es/django-template-partials/"
 
 [project.optional-dependencies]
