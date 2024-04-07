@@ -62,3 +62,10 @@ class Loader(BaseLoader):
     def get_template_sources(self, template_name):
         for loader in self.loaders:
             yield from loader.get_template_sources(template_name)
+
+    def reset(self):
+        for loader in self.loaders:
+            try:
+                loader.reset()
+            except AttributeError:
+                pass
