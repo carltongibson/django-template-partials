@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 24.2 (2024-04-08)
+
+* Implemented ``reset()`` on the partial loader to pass down to child loaders  
+  when the autoreloader detects a template change. This allows the cached loader 
+  to be correctly cleared in development. 
+
+  (The underlying issue here was masked prior to v24.1.) 
+
 ## 24.1 (2024-04-04)
 
 * Fixed a bug in how the partial loader called down to the cached loader when
