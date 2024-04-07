@@ -1,4 +1,5 @@
 import warnings
+from pathlib import Path
 
 import django.template
 from django.test import TestCase, override_settings
@@ -150,5 +151,9 @@ class ChildCachedLoaderTest(TestCase):
             type(cached_loader).__module__, "django.template.loaders.cached"
         )
         self.assertEqual(len(cached_loader.get_template_cache), 0)
-        engine.get_template("example.html")
+        template = engine.get_template("example.html")
         self.assertEqual(len(cached_loader.get_template_cache), 1)
+
+        # Simulate a template change and check the cache is reset.
+        django.template.autoreload.template_changed(None, Path(template.origin.name))
+        self.assertEqual(len(cached_loader.get_template_cache), 0)
