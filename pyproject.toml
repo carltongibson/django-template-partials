@@ -25,7 +25,7 @@ dependencies = ["Django"]
 [project.urls]
 Repository = "https://github.com/carltongibson/django-template-partials/"
 Changelog = "https://github.com/carltongibson/django-template-partials/blob/main/CHANGELOG.md"
-# Docs = "https://noumenal.es/django-template-partials/"
+Docs = "https://github.com/carltongibson/django-template-partials?tab=readme-ov-file#basic-usage"
 
 [project.optional-dependencies]
 docs = ["Sphinx"]
