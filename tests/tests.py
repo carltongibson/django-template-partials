@@ -1,9 +1,11 @@
 import warnings
 from pathlib import Path
 
+from django.http import HttpResponse
 import django.template
-from django.test import TestCase, override_settings
+from django.template.loader import render_to_string
 from django.template import engines, EngineHandler
+from django.test import TestCase, override_settings
 
 from template_partials.apps import wrap_loaders
 
@@ -157,3 +159,31 @@ class ChildCachedLoaderTest(TestCase):
         # Simulate a template change and check the cache is reset.
         django.template.autoreload.template_changed(None, Path(template.origin.name))
         self.assertEqual(len(cached_loader.get_template_cache), 0)
+
+
+class ResponseWithMultiplePartsTests(TestCase):
+    def test_resonse_with_multiple_parts(self):
+        context = {}  # Your context here.
+        template_partials = ["child.html", "child.html#extra-content"]
+
+        # Stragegy 1: Combine in view.
+        response_content = ""
+        for template_name in template_partials:
+            response_content += render_to_string(template_name, context)
+
+        response1 = HttpResponse(response_content)
+
+        # Stragegy 2: Use as a file-like object.
+        response2 = HttpResponse()
+        for template_name in template_partials:
+            response2.write(render_to_string(template_name, context))
+
+        # Stragegy 3: Use with a generator expression.
+        response3 = HttpResponse(
+            render_to_string(template_name, context)
+            for template_name in template_partials
+        )
+
+        for response in [response1, response2, response3]:
+            self.assertIn(b"Main Content", response.content)
+            self.assertIn(b"Extra Content", response.content)
