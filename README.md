@@ -82,6 +82,10 @@ This means that you can also use the partial with the `include` tag:
 {% include "example.html#test-partial" %}
 ```
 
+Note that partials are not inherited from other templates. The partial
+definition has to be inside `example.html` and cannot be in a template
+which `example.html` extends.
+
 ### Outputting inline
 
 You might want to wrap an existing part of your page, and continue rendering
