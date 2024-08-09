@@ -1,5 +1,6 @@
 # CHANGELOG
 
+* Added official Django 5.1 support.
 * Added a gentle warning when using quoted partial names.
 
 ## 24.2 (2024-04-08)

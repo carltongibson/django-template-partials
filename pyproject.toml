@@ -18,6 +18,7 @@ classifiers = [
     "Framework :: Django",
     "Framework :: Django :: 4.2",
     "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
 ]
 dynamic = ["version", "description"]
 dependencies = ["Django"]
