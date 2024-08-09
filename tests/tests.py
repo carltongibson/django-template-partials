@@ -141,6 +141,32 @@ class PartialTagsTestCase(TestCase):
         origin, _ = ex.exception.tried[0]
         self.assertEqual(origin.template_name, "not_there.html")
 
+    def test_quoted_partial_name_warning(self):
+        template = """
+        {% load partials %}
+        {% partialdef 'hello' %}{% endpartialdef %}
+        {% partialdef "world" %}{% endpartialdef %}
+        """
+
+        # Capture warnings
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+
+            # Compile and render the template
+            engine = engines["django"]
+            t = engine.from_string(template)
+            rendered = t.render()
+
+            # Check for warnings
+            w = [
+                warn
+                for warn in
+                w if issubclass(warn.category, RuntimeWarning)
+                and "quoted partial name" in str(warn)
+            ]
+            self.assertEqual(len(w), 2)
+
 
 class ChildCachedLoaderTest(TestCase):
     def test_child_cached_loader(self):

@@ -1,5 +1,7 @@
 # CHANGELOG
 
+* Added a gentle warning when using quoted partial names.
+
 ## 24.2 (2024-04-08)
 
 * Implemented ``reset()`` on the partial loader to pass down to child loaders  

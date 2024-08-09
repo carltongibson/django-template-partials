@@ -43,6 +43,13 @@ class DefinePartialNode(template.Node):
         self.inline = inline
         self.nodelist = nodelist
 
+        if self.partial_name and self.partial_name[0] in "'\"":
+            warnings.warn(
+                f"You are using a quoted partial name ({self.partial_name}). This is not intended.",
+                RuntimeWarning,
+                stacklevel=1,
+            )
+
     def render(self, context):
         """Set content into context and return empty string"""
         if self.inline:
