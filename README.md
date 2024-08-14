@@ -46,6 +46,17 @@ TEST-PARTIAL-CONTENT
 {% endpartialdef %}
 ```
 
+For extra readability, you can optionally add the name to your `{% endblock %}` tag. For
+example:
+
+```html
+{% load partials %}
+
+{% partialdef test-partial %}
+TEST-PARTIAL-CONTENT
+{% endpartialdef test-partial %}
+```
+
 ### Fragment Re-use
 
 With the partial defined, you can reuse it multiple times later:
