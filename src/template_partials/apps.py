@@ -3,9 +3,11 @@ django-template-partials
 
 App configuration to set up a partials loader automatically.
 """
+
 from contextlib import suppress
-import django.template
+
 import django.contrib.admin
+import django.template
 from django.apps import AppConfig
 from django.conf import settings
 
