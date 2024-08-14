@@ -72,7 +72,7 @@ def partialdef_func(parser, token):
 
     Usage:
 
-        {% partialdef "partial_name" %}
+        {% partialdef partial_name %}
 
         Partial content goes here
 
@@ -116,7 +116,11 @@ def _define_partial(parser, token, end_tag):
         inline = False
 
     # Parse the content until the end tag (`endpartialdef` or deprecated `endpartial`)
-    nodelist = parser.parse((end_tag,))
+    acceptable_endpartials = (end_tag, f"{end_tag} {partial_name}")
+    nodelist = parser.parse(acceptable_endpartials)
+    endpartial = parser.next_token()
+    if endpartial.contents not in acceptable_endpartials:
+        parser.invalid_block_tag(endpartial, "endpartial", acceptable_endpartials)
     parser.delete_first_token()
 
     if not hasattr(parser.origin, "partial_contents"):

@@ -1,14 +1,16 @@
 # CHANGELOG
 
 * Added official Django 5.1 support.
+* Allowed adding the partial name to the `endpartialdef` tag, similar to how
+  `endblock` allows specifying the block name again.
 
 ## 24.2 (2024-04-08)
 
-* Implemented ``reset()`` on the partial loader to pass down to child loaders  
-  when the autoreloader detects a template change. This allows the cached loader 
-  to be correctly cleared in development. 
+* Implemented ``reset()`` on the partial loader to pass down to child loaders
+  when the autoreloader detects a template change. This allows the cached loader
+  to be correctly cleared in development.
 
-  (The underlying issue here was masked prior to v24.1.) 
+  (The underlying issue here was masked prior to v24.1.)
 
 ## 24.1 (2024-04-04)
 

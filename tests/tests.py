@@ -3,7 +3,7 @@ from pathlib import Path
 
 import django.template
 from django.http import HttpResponse
-from django.template import EngineHandler, engines
+from django.template import EngineHandler, TemplateSyntaxError, engines
 from django.template.loader import render_to_string
 from django.test import TestCase, override_settings
 from template_partials.apps import wrap_loaders
@@ -34,8 +34,8 @@ class PartialTagsTestCase(TestCase):
     def test_partial_tags(self):
         template = """
         {% load partials %}
-        {% partialdef "testing-partial" %}HERE IS THE TEST CONTENT{% endpartialdef %}
-        {% partial "testing-partial" %}
+        {% partialdef testing-partial %}HERE IS THE TEST CONTENT{% endpartialdef %}
+        {% partial testing-partial %}
         """
 
         # Compile and render the template
@@ -49,8 +49,8 @@ class PartialTagsTestCase(TestCase):
     def test_deprecated_startpartial_tag(self):
         template = """
         {% load partials %}
-        {% startpartial "deprecated-testing-partial" %}DEPRECATED TEST CONTENT{% endpartial %}
-        {% partial "deprecated-testing-partial" %}
+        {% startpartial deprecated-testing-partial %}DEPRECATED TEST CONTENT{% endpartial %}
+        {% partial deprecated-testing-partial %}
         """
 
         # Capture warnings
@@ -74,7 +74,7 @@ class PartialTagsTestCase(TestCase):
     def test_partialdef_tag_with_inline(self):
         template = """
         {% load partials %}
-        {% partialdef "testing-partial" inline=True %}
+        {% partialdef testing-partial inline=True %}
         HERE IS THE TEST CONTENT
         {% endpartialdef %}
         """
@@ -86,6 +86,37 @@ class PartialTagsTestCase(TestCase):
 
         # Check the rendered content
         self.assertEqual("HERE IS THE TEST CONTENT", rendered.strip())
+
+    def test_endpartialdef_with_partial_name(self):
+        template = """
+        {% load partials %}
+        {% partialdef testing-partial %}
+        HERE IS THE TEST CONTENT
+        {% endpartialdef testing-partial %}
+        {% partial testing-partial %}
+        """
+
+        # Compile and render the template
+        engine = engines["django"]
+        t = engine.from_string(template)
+        rendered = t.render()
+
+        # Check the rendered content
+        self.assertEqual("HERE IS THE TEST CONTENT", rendered.strip())
+
+    def test_endpartialdef_with_invalid_partial_name(self):
+        template = """
+        {% load partials %}
+        {% partialdef testing-partial %}
+        HERE IS THE TEST CONTENT
+        {% endpartialdef invalid %}
+        {% partial testing-partial %}
+        """
+
+        with self.assertRaises(TemplateSyntaxError):
+            # Compile and render the template
+            engine = engines["django"]
+            engine.from_string(template)
 
     def test_full_template_from_loader(self):
         engine = engines["django"]
