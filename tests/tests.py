@@ -1,12 +1,11 @@
 import warnings
 from pathlib import Path
 
-from django.http import HttpResponse
 import django.template
+from django.http import HttpResponse
+from django.template import EngineHandler, engines
 from django.template.loader import render_to_string
-from django.template import engines, EngineHandler
 from django.test import TestCase, override_settings
-
 from template_partials.apps import wrap_loaders
 
 

@@ -1,5 +1,5 @@
-from django.template.loaders import cached
 from django.template import TemplateDoesNotExist
+from django.template.loaders import cached
 from django.template.loaders.base import Loader as BaseLoader
 
 
