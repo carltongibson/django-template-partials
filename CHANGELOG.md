@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 24.4 (2024-08-16)
+
+* Fixed a regression in 24.3 for inline partials with wrapping content.
+
 ## 24.3 (2024-08-16)
 
 * Added official Django 5.1 support.
