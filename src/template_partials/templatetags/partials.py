@@ -121,7 +121,6 @@ def _define_partial(parser, token, end_tag):
     endpartial = parser.next_token()
     if endpartial.contents not in acceptable_endpartials:
         parser.invalid_block_tag(endpartial, "endpartial", acceptable_endpartials)
-    parser.delete_first_token()
 
     if not hasattr(parser.origin, "partial_contents"):
         parser.origin.partial_contents = {}

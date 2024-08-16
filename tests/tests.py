@@ -1,5 +1,6 @@
 import warnings
 from pathlib import Path
+from textwrap import dedent
 
 import django.template
 from django.http import HttpResponse
@@ -86,6 +87,24 @@ class PartialTagsTestCase(TestCase):
 
         # Check the rendered content
         self.assertEqual("HERE IS THE TEST CONTENT", rendered.strip())
+
+    def test_inline_partial_with_wrapping_content(self):
+        template = """
+        {% load partials %}
+        BEFORE
+        {% partialdef testing-partial inline=True %}
+        HERE IS THE TEST CONTENT
+        {% endpartialdef %}
+        AFTER
+        """
+
+        # Compile and render the template
+        engine = engines["django"]
+        t = engine.from_string(dedent(template))
+        rendered = t.render()
+
+        # Check the rendered content
+        self.assertEqual("BEFORE\n\nHERE IS THE TEST CONTENT\n\nAFTER", rendered.strip())
 
     def test_endpartialdef_with_partial_name(self):
         template = """
