@@ -1,8 +1,13 @@
 # CHANGELOG
 
+## 24.3 (2024-08-16)
+
 * Added official Django 5.1 support.
+
 * Allowed adding the partial name to the `endpartialdef` tag, similar to how
   `endblock` allows specifying the block name again.
+
+  Thanks to Matthias Kestenholz
 
 ## 24.2 (2024-04-08)
 
