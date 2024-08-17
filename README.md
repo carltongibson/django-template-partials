@@ -100,7 +100,7 @@ the content inside your partial, use the `inline` argument in that situation:
 
 ```html
 {% block main %}
-{% partialdef inline-partial inline=True %}
+{% partialdef inline-partial inline %}
 CONTENT
 {% endpartialdef %}
 {% endblock main %}

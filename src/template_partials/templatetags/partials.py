@@ -81,7 +81,7 @@ def partialdef_func(parser, token):
     Stores the nodelist in the context under the key "partial_contents" and can
     be retrieved using the {% partial %} tag.
 
-    The optional inline=True argument will render the contents of the partial
+    The optional ``inline`` argument will render the contents of the partial
     where it is defined.
     """
     return _define_partial(parser, token, "endpartialdef")
@@ -114,6 +114,12 @@ def _define_partial(parser, token, end_tag):
     except IndexError:
         # the inline argument is optional, so fallback to not using it
         inline = False
+
+    if inline and inline != "inline":
+        warnings.warn(
+            "The 'inline' argument does not have any parameters; either use 'inline' or remove it completely.",
+            DeprecationWarning,
+        )
 
     # Parse the content until the end tag (`endpartialdef` or deprecated `endpartial`)
     acceptable_endpartials = (end_tag, f"{end_tag} {partial_name}")

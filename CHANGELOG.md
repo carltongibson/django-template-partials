@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* Deprecated passing arguments to the `inline` argument of the `partialdef`
+  tag. Either use `inline` or nothing.
+
 ## 24.4 (2024-08-16)
 
 * Fixed a regression in 24.3 for inline partials with wrapping content.
