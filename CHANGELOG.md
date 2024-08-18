@@ -69,6 +69,8 @@ conventions. (All the built-in tags follow the `<name>` `end<name>` pattern.)
 
   Thanks to George Hickman.
 
+  Note: Passing `inline=True` has been deprecated in 24.5. Only pass `inline` instead.
+
 * Adding `"template_partials"` to `INSTALLED_APPS` will now **automatically** configure
   the partials template loader.
 
