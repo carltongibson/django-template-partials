@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* Deprecated passing arguments to the `inline` argument of the `partialdef`
+  tag. Either use `inline` or nothing.
+
 ## 24.4 (2024-08-16)
 
 * Fixed a regression in 24.3 for inline partials with wrapping content.
@@ -65,6 +68,8 @@ conventions. (All the built-in tags follow the `<name>` `end<name>` pattern.)
   content *inline*, if that suits your case better.
 
   Thanks to George Hickman.
+
+  Note: Passing `inline=True` has been deprecated in 24.5. Only pass `inline` instead.
 
 * Adding `"template_partials"` to `INSTALLED_APPS` will now **automatically** configure
   the partials template loader.

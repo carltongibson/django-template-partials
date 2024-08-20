@@ -65,8 +65,11 @@ class PartialTagsTestCase(TestCase):
             rendered = t.render()
 
             # Check for deprecation warning
-            self.assertTrue(
-                any(issubclass(warn.category, DeprecationWarning) for warn in w)
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+            self.assertIn(
+                "The 'startpartial' tag is deprecated; use 'partialdef' instead.",
+                str(w[-1]),
             )
 
         # Check the rendered content
@@ -75,7 +78,7 @@ class PartialTagsTestCase(TestCase):
     def test_partialdef_tag_with_inline(self):
         template = """
         {% load partials %}
-        {% partialdef testing-partial inline=True %}
+        {% partialdef testing-partial inline %}
         HERE IS THE TEST CONTENT
         {% endpartialdef %}
         """
@@ -92,7 +95,7 @@ class PartialTagsTestCase(TestCase):
         template = """
         {% load partials %}
         BEFORE
-        {% partialdef testing-partial inline=True %}
+        {% partialdef testing-partial inline %}
         HERE IS THE TEST CONTENT
         {% endpartialdef %}
         AFTER
@@ -104,7 +107,35 @@ class PartialTagsTestCase(TestCase):
         rendered = t.render()
 
         # Check the rendered content
-        self.assertEqual("BEFORE\n\nHERE IS THE TEST CONTENT\n\nAFTER", rendered.strip())
+        self.assertEqual(
+            "BEFORE\n\nHERE IS THE TEST CONTENT\n\nAFTER", rendered.strip()
+        )
+
+    def test_deprecated_inline_argument(self):
+        template = """
+        {% load partials %}
+        {% partialdef testing-partial inline=True %}TEST CONTENT{% endpartialdef %}
+        """
+
+        # Capture warnings
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+
+            # Compile and render the template
+            engine = engines["django"]
+            t = engine.from_string(template)
+            rendered = t.render()
+
+            # Check for deprecation warning
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+            self.assertIn(
+                "The 'inline' argument does not have any parameters", str(w[-1])
+            )
+
+        # Check the rendered content
+        self.assertEqual("TEST CONTENT", rendered.strip())
 
     def test_endpartialdef_with_partial_name(self):
         template = """
