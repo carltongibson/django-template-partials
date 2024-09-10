@@ -46,7 +46,7 @@ TEST-PARTIAL-CONTENT
 {% endpartialdef %}
 ```
 
-For extra readability, you can optionally add the name to your `{% endblock %}` tag. For
+For extra readability, you can optionally add the name to your `{% endpartialdef %}` tag. For
 example:
 
 ```html
