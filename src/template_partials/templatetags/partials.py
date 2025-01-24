@@ -1,8 +1,19 @@
+import re
 import warnings
 
 from django import template
 
 register = template.Library()
+
+#
+# A mapping of template names to a mapping of partials in that template
+#
+_PARTIALS_MAP = {
+}
+
+_START_TAG = re.compile(r'\{%\s*(startpartial|partialdef)\s+([\w-]+)(\s+inline)?\s*%}')
+_END_TAG_OLD = re.compile(r'\{%\s*endpartial\s*%}')
+_END_TAG = re.compile(r'\{%\s*endpartialdef\s*%}')
 
 
 class TemplateProxy:
@@ -14,15 +25,39 @@ class TemplateProxy:
         self.nodelist = nodelist
         self.origin = origin
         self.name = name
+        self._source = None
 
     def get_exception_info(self, exception, token):
         template = self.origin.loader.get_template(self.origin.template_name)
         return template.get_exception_info(exception, token)
 
+    def populate_partials_map(self, full_source):
+        result = {}
+        pos = 0
+        for m in _START_TAG.finditer(full_source, pos):
+            sspos, sepos = m.span()
+            starter, name, inline = m.groups()
+            end_tag = _END_TAG_OLD if starter == 'startpartial' else _END_TAG
+            endm = end_tag.search(full_source, sepos + 1)
+            assert endm, 'End tag must be present'
+            espos, eepos = endm.span()
+            result[name] = full_source[sspos:eepos]
+            pos = eepos + 1
+        return result
+
     @property
     def source(self):
-        template = self.origin.loader.get_template(self.origin.template_name)
-        return template.source
+        if self._source is None:
+            name = self.origin.template_name
+            if name in _PARTIALS_MAP:
+                partials_map = _PARTIALS_MAP[name]
+            else:
+                template = self.origin.loader.get_template(name)
+                full_source = template.source
+                partials_map = self.populate_partials_map(full_source)
+                _PARTIALS_MAP[name] = partials_map
+            self._source = partials_map[self.name]
+        return self._source
 
     def render(self, context):
         """
