@@ -7,7 +7,9 @@ from django.utils.autoreload import file_changed
 register = template.Library()
 
 #
-# A mapping of template names to a mapping of partials in that template
+# A mapping of template paths to a mapping of sources of partials in that template.
+# This acts as a cache of the partial sources. The on_file_change function invalidates
+# the cache when needed.
 #
 _PARTIALS_MAP = {
 }
@@ -18,8 +20,8 @@ _END_TAG = re.compile(r'\{%\s*endpartialdef\s*%}')
 
 
 def on_file_change(sender, file_path, **kwargs):
-    s = str(file_path)
-    _PARTIALS_MAP.pop(s, None)
+    s = str(file_path)  # Convert from a Path object
+    _PARTIALS_MAP.pop(s, None)  # Clear the cache for a changed template
 
 
 file_changed.connect(on_file_change, dispatch_uid='on-file-change')
@@ -40,6 +42,10 @@ class TemplateProxy:
         return template.get_exception_info(exception, token)
 
     def populate_partials_map(self, full_source):
+        """
+        Loop through the full source of the template, looking for partials.
+        Return a dict mapping partial names to their sources.
+        """
         result = {}
         pos = 0
         for m in _START_TAG.finditer(full_source, pos):
@@ -55,7 +61,7 @@ class TemplateProxy:
 
     @property
     def source(self):
-        name = self.origin.name
+        name = self.origin.name  # Should be the path to the containing template
         if name in _PARTIALS_MAP:
             partials_map = _PARTIALS_MAP[name]
         else:
