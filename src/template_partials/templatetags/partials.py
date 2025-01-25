@@ -41,7 +41,7 @@ class TemplateProxy:
             endm = end_tag.search(full_source, sepos + 1)
             assert endm, 'End tag must be present'
             espos, eepos = endm.span()
-            result[name] = full_source[sspos:eepos]
+            result[name] = full_source[sepos:espos]
             pos = eepos + 1
         return result
 

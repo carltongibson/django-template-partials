@@ -205,9 +205,9 @@ class PartialTagsTestCase(TestCase):
         """Partials defer to their source template for source code."""
         engine = engines["django"]
         partial = engine.get_template("example.html#test-partial")
-        self.assertEqual(partial.template.source, '{% partialdef test-partial %}\nTEST-PARTIAL-CONTENT\n{% endpartialdef %}')
+        self.assertEqual(partial.template.source, '\nTEST-PARTIAL-CONTENT\n')
         partial = engine.get_template("example.html#inline-partial")
-        self.assertEqual(partial.template.source, '{% partialdef inline-partial inline %}\nINLINE-CONTENT\n{% endpartialdef %}')
+        self.assertEqual(partial.template.source, '\nINLINE-CONTENT\n')
 
     def test_chained_exception_forwarded(self):
         """TemplateDoesNotExist exceptions are chained with the tried attribute."""
