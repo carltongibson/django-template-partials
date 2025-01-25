@@ -2,29 +2,12 @@ import re
 import warnings
 
 from django import template
-from django.utils.autoreload import file_changed
 
 register = template.Library()
-
-#
-# A mapping of template paths to a mapping of sources of partials in that template.
-# This acts as a cache of the partial sources. The on_file_change function invalidates
-# the cache when needed.
-#
-_PARTIALS_MAP = {
-}
 
 _START_TAG = re.compile(r'\{%\s*(startpartial|partialdef)\s+([\w-]+)(\s+inline)?\s*%}')
 _END_TAG_OLD = re.compile(r'\{%\s*endpartial\s*%}')
 _END_TAG = re.compile(r'\{%\s*endpartialdef\s*%}')
-
-
-def on_file_change(sender, file_path, **kwargs):
-    s = str(file_path)  # Convert from a Path object
-    _PARTIALS_MAP.pop(s, None)  # Clear the cache for a changed template
-
-
-file_changed.connect(on_file_change, dispatch_uid='on-file-change')
 
 
 class TemplateProxy:
@@ -41,12 +24,12 @@ class TemplateProxy:
         template = self.origin.loader.get_template(self.origin.template_name)
         return template.get_exception_info(exception, token)
 
-    def populate_partials_map(self, full_source):
+    def find_partial_source(self, full_source, partial_name):
         """
-        Loop through the full source of the template, looking for partials.
-        Return a dict mapping partial names to their sources.
+        Loop through the full source of the template, looking for the sought partial
+        and returning it if found, else the empty string.
         """
-        result = {}
+        result = ''
         pos = 0
         for m in _START_TAG.finditer(full_source, pos):
             sspos, sepos = m.span()
@@ -55,21 +38,16 @@ class TemplateProxy:
             endm = end_tag.search(full_source, sepos + 1)
             assert endm, 'End tag must be present'
             espos, eepos = endm.span()
-            result[name] = full_source[sepos:espos]
+            if name == partial_name:
+                result = full_source[sepos:espos]
+                break
             pos = eepos + 1
         return result
 
     @property
     def source(self):
-        name = self.origin.name  # Should be the path to the containing template
-        if name in _PARTIALS_MAP:
-            partials_map = _PARTIALS_MAP[name]
-        else:
-            template = self.origin.loader.get_template(name)
-            full_source = template.source
-            partials_map = self.populate_partials_map(full_source)
-            _PARTIALS_MAP[name] = partials_map
-        return partials_map[self.name]
+        template = self.origin.loader.get_template(self.origin.name)
+        return self.find_partial_source(template.source, self.name)
 
     def render(self, context):
         """
