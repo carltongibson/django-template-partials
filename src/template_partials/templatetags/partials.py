@@ -2,6 +2,7 @@ import re
 import warnings
 
 from django import template
+from django.utils.autoreload import file_changed
 
 register = template.Library()
 
@@ -16,6 +17,14 @@ _END_TAG_OLD = re.compile(r'\{%\s*endpartial\s*%}')
 _END_TAG = re.compile(r'\{%\s*endpartialdef\s*%}')
 
 
+def on_file_change(sender, file_path, **kwargs):
+    s = str(file_path)
+    _PARTIALS_MAP.pop(s, None)
+
+
+file_changed.connect(on_file_change, dispatch_uid='on-file-change')
+
+
 class TemplateProxy:
     """
     Wraps nodelist as partial, in order to bind context.
@@ -25,7 +34,6 @@ class TemplateProxy:
         self.nodelist = nodelist
         self.origin = origin
         self.name = name
-        self._source = None
 
     def get_exception_info(self, exception, token):
         template = self.origin.loader.get_template(self.origin.template_name)
@@ -47,17 +55,15 @@ class TemplateProxy:
 
     @property
     def source(self):
-        if self._source is None:
-            name = self.origin.template_name
-            if name in _PARTIALS_MAP:
-                partials_map = _PARTIALS_MAP[name]
-            else:
-                template = self.origin.loader.get_template(name)
-                full_source = template.source
-                partials_map = self.populate_partials_map(full_source)
-                _PARTIALS_MAP[name] = partials_map
-            self._source = partials_map[self.name]
-        return self._source
+        name = self.origin.name
+        if name in _PARTIALS_MAP:
+            partials_map = _PARTIALS_MAP[name]
+        else:
+            template = self.origin.loader.get_template(name)
+            full_source = template.source
+            partials_map = self.populate_partials_map(full_source)
+            _PARTIALS_MAP[name] = partials_map
+        return partials_map[self.name]
 
     def render(self, context):
         """
