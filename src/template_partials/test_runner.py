@@ -12,7 +12,7 @@ class TemplatePartialsTestRunner(DiscoverRunner):
         super().setup_test_environment(**kwargs)
 
         try:
-            # Get the Django template engine and access required classes
+            # Get the Django template engine and access required classes and methods
             from template_partials.templatetags.partials import TemplateProxy
 
             # Store original methods
