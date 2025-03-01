@@ -29,3 +29,6 @@ DATABASES = {
     },
 }
 USE_TZ = True
+
+# Add the custom test runner
+TEST_RUNNER = "template_partials.test_runner.TemplatePartialsTestRunner"
