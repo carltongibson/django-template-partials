@@ -1,12 +1,13 @@
 import warnings
 from pathlib import Path
 from textwrap import dedent
-
 import django.template
 from django.http import HttpResponse
 from django.template import EngineHandler, TemplateSyntaxError, engines
 from django.template.loader import render_to_string
 from django.test import TestCase, override_settings
+from django.urls import path
+from django.shortcuts import render
 from template_partials.apps import wrap_loaders
 
 
@@ -267,3 +268,51 @@ class ResponseWithMultiplePartsTests(TestCase):
         for response in [response1, response2, response3]:
             self.assertIn(b"Main Content", response.content)
             self.assertIn(b"Extra Content", response.content)
+
+
+# Define a simple view function for testing
+def test_partial_view(request):
+    """Test view that renders a template with a partial and context data."""
+    context = {"test": ["item1", "item2", "item3"], "title": "Test Partial View"}
+    return render(request, "test_partial_context.html#test_partial", context)
+
+
+# Define URL patterns for testing
+urlpatterns = [
+    path("test-partial/", test_partial_view, name="test-partial"),
+]
+
+
+@override_settings(
+    ROOT_URLCONF=__name__,
+    TEMPLATES=[
+        {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "APP_DIRS": True,
+        }
+    ],
+    INSTALLED_APPS=[
+        "template_partials",
+        "tests",
+        "django.contrib.contenttypes",
+    ],
+)
+class InstrumentedTestRenderingPartialTest(TestCase):
+    """Test that view rendering works with partials and context is accessible."""
+
+    # without this i get Template not found error
+    def setUp(self):
+        """Set up the test environment."""
+        # Wrap loaders to ensure partials are handled
+        from template_partials.apps import wrap_loaders
+
+        wrap_loaders("django")
+
+    def test_view_with_partial(self):
+        """Test a view that renders a template with partials."""
+        # Use the test client to get a response
+        response = self.client.get("/test-partial/")
+        # Check response status
+        self.assertEqual(response.status_code, 200)
+        # Check the context is accessible
+        self.assertEqual(len(response.context["test"]), 3)
