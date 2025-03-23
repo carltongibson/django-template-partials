@@ -146,7 +146,7 @@ def partial_func(parser, token):
 
     Usage:
 
-        {% partial "partial_name" %}
+        {% partial partial_name %}
     """
     # Parse the tag
     try:
