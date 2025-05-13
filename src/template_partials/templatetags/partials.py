@@ -160,10 +160,9 @@ def partial_func(parser, token):
     """
     # Parse the tag
     try:
-        tag_name, partial_name = token.split_contents()
+        _, partial_name = token.split_contents()
     except ValueError:
         raise template.TemplateSyntaxError(
             "%r tag requires a single argument" % token.contents.split()[0]
         )
-    # nodelist = partial_contents[partial_name]
     return RenderPartialNode(partial_name)
