@@ -53,19 +53,21 @@ class DefinePartialNode(template.Node):
 
 
 class RenderPartialNode(template.Node):
-    def __init__(self, partial_name):
+    def __init__(self, partial_name, origin):
         self.partial_name = partial_name
+        self.origin = origin
 
     def render(self, context):
-        template_obj = getattr(context, "template", None)
-        # Try Django 5.1+ extra_data first
+        """Render the partial content from the context"""
+        # Use the origin to get the partial content, because it's per Template,
+        # and available to the Parser.
+        # TODO: raise a better error here.
         try:
-            extra_data = getattr(template_obj, "extra_data")
-            partials = extra_data.get("template-partials", {})
-        except AttributeError:
-            partials = getattr(template_obj.origin, "partial_contents", {})
-
-        return partials[self.partial_name].render(context)
+            nodelist = self.origin.partial_contents[self.partial_name]
+        except Exception:
+            partials = context.template.extra_data.get("template-partials", {})
+            nodelist = partials[self.partial_name]
+        return nodelist.render(context)
 
 
 @register.tag(name="partialdef")
@@ -165,4 +167,5 @@ def partial_func(parser, token):
         raise template.TemplateSyntaxError(
             "%r tag requires a single argument" % token.contents.split()[0]
         )
-    return RenderPartialNode(partial_name)
+
+    return RenderPartialNode(partial_name, origin=parser.origin)
