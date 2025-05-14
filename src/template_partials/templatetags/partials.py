@@ -53,19 +53,13 @@ class DefinePartialNode(template.Node):
 
 
 class RenderPartialNode(template.Node):
-    def __init__(self, partial_name):
+    def __init__(self, partial_name, partial_mapping):
+        # Defer lookup of nodelist to runtime.
         self.partial_name = partial_name
+        self.partial_mapping = partial_mapping
 
     def render(self, context):
-        template_obj = getattr(context, "template", None)
-        # Try Django 5.1+ extra_data first
-        try:
-            extra_data = getattr(template_obj, "extra_data")
-            partials = extra_data.get("template-partials", {})
-        except AttributeError:
-            partials = getattr(template_obj.origin, "partial_contents", {})
-
-        return partials[self.partial_name].render(context)
+        return self.partial_mapping[self.partial_name].render(context)
 
 
 @register.tag(name="partialdef")
@@ -165,4 +159,11 @@ def partial_func(parser, token):
         raise template.TemplateSyntaxError(
             "%r tag requires a single argument" % token.contents.split()[0]
         )
-    return RenderPartialNode(partial_name)
+
+    try:
+        extra_data = getattr(parser, "extra_data")
+        partial_mapping = extra_data.get("template-partials", {})
+    except AttributeError:
+        partial_mapping = parser.origin.partial_contents
+
+    return RenderPartialNode(partial_name, partial_mapping=partial_mapping)
