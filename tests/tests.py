@@ -254,7 +254,6 @@ class PartialTagsTestCase(TestCase):
         engine = engines["django"]
         parent_template = engine.get_template("parent.html")
         rendered = parent_template.render()
-        # Check the rendered content contains the expected text
         self.assertIn("MAIN TEMPLATE START", rendered)
         self.assertIn("INCLUDED TEMPLATE START", rendered)
         self.assertIn("THIS IS CONTENT FROM THE INCLUDED PARTIAL", rendered)
@@ -275,13 +274,9 @@ class PartialTagsTestCase(TestCase):
         {% endpartialdef %}
         TEMPLATE END
         """
-
-        # Create template from string
         engine = engines["django"]
         template = engine.from_string(template_content)
         rendered = template.render()
-
-        # Check the rendered content contains the expected text
         self.assertIn("TEMPLATE START", rendered)
         self.assertIn("THIS IS THE SKELETON PARTIAL CONTENT", rendered)
         self.assertIn("MIDDLE CONTENT", rendered)
