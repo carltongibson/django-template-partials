@@ -142,6 +142,21 @@ def _define_partial(parser, token, end_tag):
     return DefinePartialNode(partial_name, inline, nodelist)
 
 
+class SubDictionaryWrapper:
+    """
+    Wrap a parent dictionary, allowing deferred access to a sub-dictionary by key.
+
+    The parser.extra_data storage may not yet be populated when a partial node
+    is defined, so we defer access until rendering.
+    """
+    def __init__(self, parent_dict, lookup_key):
+        self.parent_dict = parent_dict
+        self.lookup_key = lookup_key
+
+    def __getitem__(self, key):
+        return self.parent_dict[self.lookup_key][key]
+
+
 # Define the partial tag to render the partial content.
 @register.tag(name="partial")
 def partial_func(parser, token):
@@ -162,7 +177,7 @@ def partial_func(parser, token):
 
     try:
         extra_data = getattr(parser, "extra_data")
-        partial_mapping = extra_data.get("template-partials", {})
+        partial_mapping = SubDictionaryWrapper(extra_data, "template-partials")
     except AttributeError:
         partial_mapping = parser.origin.partial_contents
 
