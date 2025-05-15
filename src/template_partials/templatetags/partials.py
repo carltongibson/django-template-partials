@@ -53,21 +53,13 @@ class DefinePartialNode(template.Node):
 
 
 class RenderPartialNode(template.Node):
-    def __init__(self, partial_name, origin):
+    def __init__(self, partial_name, partial_mapping):
+        # Defer lookup of nodelist to runtime.
         self.partial_name = partial_name
-        self.origin = origin
+        self.partial_mapping = partial_mapping
 
     def render(self, context):
-        """Render the partial content from the context"""
-        # Use the origin to get the partial content, because it's per Template,
-        # and available to the Parser.
-        # TODO: raise a better error here.
-        try:
-            nodelist = self.origin.partial_contents[self.partial_name]
-        except Exception:
-            partials = context.template.extra_data.get("template-partials", {})
-            nodelist = partials[self.partial_name]
-        return nodelist.render(context)
+        return self.partial_mapping[self.partial_name].render(context)
 
 
 @register.tag(name="partialdef")
@@ -150,6 +142,22 @@ def _define_partial(parser, token, end_tag):
     return DefinePartialNode(partial_name, inline, nodelist)
 
 
+class SubDictionaryWrapper:
+    """
+    Wrap a parent dictionary, allowing deferred access to a sub-dictionary by key.
+
+    The parser.extra_data storage may not yet be populated when a partial node
+    is defined, so we defer access until rendering.
+    """
+
+    def __init__(self, parent_dict, lookup_key):
+        self.parent_dict = parent_dict
+        self.lookup_key = lookup_key
+
+    def __getitem__(self, key):
+        return self.parent_dict[self.lookup_key][key]
+
+
 # Define the partial tag to render the partial content.
 @register.tag(name="partial")
 def partial_func(parser, token):
@@ -162,10 +170,16 @@ def partial_func(parser, token):
     """
     # Parse the tag
     try:
-        _, partial_name = token.split_contents()
+        tag_name, partial_name = token.split_contents()
     except ValueError:
         raise template.TemplateSyntaxError(
-            "%r tag requires a single argument" % token.contents.split()[0]
+            "%r tag requires a single argument" % tag_name
         )
 
-    return RenderPartialNode(partial_name, origin=parser.origin)
+    try:
+        extra_data = getattr(parser, "extra_data")
+        partial_mapping = SubDictionaryWrapper(extra_data, "template-partials")
+    except AttributeError:
+        partial_mapping = parser.origin.partial_contents
+
+    return RenderPartialNode(partial_name, partial_mapping=partial_mapping)
