@@ -142,34 +142,28 @@ def _define_partial(parser, token, end_tag):
     return DefinePartialNode(partial_name, inline, nodelist)
 
 
-class SubDictionaryWrapper:
+class PartialContentsWrapper:
     """
-    Wrap a parent dictionary, allowing deferred access to a sub-dictionary by key.
-
-    The parser.extra_data storage may not yet be populated when a partial node
-    is defined, so we defer access until rendering.
+    Wrapper for accessing partial contents either from parser.extra_data or parser.origin.
+    Handles deferred access to partial contents, which may not be populated when a partial node is defined.
     """
 
-    def __init__(self, parent_dict, lookup_key):
+    def __init__(self, parent_dict=None, lookup_key=None, origin=None):
         self.parent_dict = parent_dict
         self.lookup_key = lookup_key
-
-    def __getitem__(self, key):
-        return self.parent_dict[self.lookup_key][key]
-
-
-class OriginPartialContentsWrapper:
-    """
-    Wrap parser.origin to allow deferred access to partial_contents.
-    """
-
-    def __init__(self, origin):
         self.origin = origin
 
     def __getitem__(self, key):
-        if not hasattr(self.origin, "partial_contents"):
-            self.origin.partial_contents = {}
-        return self.origin.partial_contents[key]
+        try:
+            if self.origin is None:
+                return self.parent_dict[self.lookup_key][key]
+            else:
+                if not hasattr(self.origin, "partial_contents"):
+                    self.origin.partial_contents = {}
+                return self.origin.partial_contents[key]
+
+        except KeyError:
+            raise template.TemplateSyntaxError(f"Undefined partial: '{key}'")
 
 
 # Define the partial tag to render the partial content.
@@ -192,8 +186,8 @@ def partial_func(parser, token):
 
     try:
         extra_data = getattr(parser, "extra_data")
-        partial_mapping = SubDictionaryWrapper(extra_data, "template-partials")
+        partial_mapping = PartialContentsWrapper(extra_data, "template-partials")
     except AttributeError:
-        partial_mapping = OriginPartialContentsWrapper(parser.origin)
+        partial_mapping = PartialContentsWrapper(origin=parser.origin)
 
     return RenderPartialNode(partial_name, partial_mapping=partial_mapping)

@@ -282,6 +282,23 @@ class PartialTagsTestCase(TestCase):
         self.assertIn("MIDDLE CONTENT", rendered)
         self.assertIn("TEMPLATE END", rendered)
 
+    def test_undefined_partial_error_message(self):
+        """
+        Test that an undefined partial raises a TemplateSyntaxError.
+        """
+        template = """
+        {% load partials %}
+        {% partial not-defined-partial %}
+        """
+
+        # Compile and render the template
+        engine = engines["django"]
+        t = engine.from_string(template)
+        with self.assertRaisesMessage(
+            TemplateSyntaxError, "Undefined partial: 'not-defined-partial'"
+        ):
+            t.render()
+
 
 class ChildCachedLoaderTest(TestCase):
     def test_child_cached_loader(self):
