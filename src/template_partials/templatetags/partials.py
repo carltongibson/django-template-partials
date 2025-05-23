@@ -158,6 +158,20 @@ class SubDictionaryWrapper:
         return self.parent_dict[self.lookup_key][key]
 
 
+class OriginPartialContentsWrapper:
+    """
+    Wrap parser.origin to allow deferred access to partial_contents.
+    """
+
+    def __init__(self, origin):
+        self.origin = origin
+
+    def __getitem__(self, key):
+        if not hasattr(self.origin, "partial_contents"):
+            self.origin.partial_contents = {}
+        return self.origin.partial_contents[key]
+
+
 # Define the partial tag to render the partial content.
 @register.tag(name="partial")
 def partial_func(parser, token):
@@ -180,6 +194,6 @@ def partial_func(parser, token):
         extra_data = getattr(parser, "extra_data")
         partial_mapping = SubDictionaryWrapper(extra_data, "template-partials")
     except AttributeError:
-        partial_mapping = parser.origin.partial_contents
+        partial_mapping = OriginPartialContentsWrapper(parser.origin)
 
     return RenderPartialNode(partial_name, partial_mapping=partial_mapping)
