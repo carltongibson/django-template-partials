@@ -221,6 +221,67 @@ class PartialTagsTestCase(TestCase):
         origin, _ = ex.exception.tried[0]
         self.assertEqual(origin.template_name, "not_there.html")
 
+    def test_extends_with_partialdef(self):
+        """
+        Regression test for issue #26: When TemplateProxy lacks get_nodes_by_type,
+        using extends and partialdef together should work now
+        """
+
+        # Template with both extends and partialdef
+        template_string = """
+        {% extends 'base.html' %}
+        {% load partials %}
+        {% partialdef test-partial %}
+        Content inside partial
+        {% endpartialdef %}
+        {% block main %}
+        Main content with {% partial test-partial %}
+        {% endblock %}
+        """
+
+        engine = engines["django"]
+        template = engine.from_string(template_string)
+        rendered = template.render()
+
+        # Verify the template rendered correctly
+        self.assertIn("Main content with", rendered)
+        self.assertIn("Content inside partial", rendered)
+
+    def test_template_inclusion_with_partial(self):
+        """
+        Test that a template can include another template that defines and uses a partial.
+        """
+        engine = engines["django"]
+        parent_template = engine.get_template("parent.html")
+        rendered = parent_template.render()
+        self.assertIn("MAIN TEMPLATE START", rendered)
+        self.assertIn("INCLUDED TEMPLATE START", rendered)
+        self.assertIn("THIS IS CONTENT FROM THE INCLUDED PARTIAL", rendered)
+        self.assertIn("INCLUDED TEMPLATE END", rendered)
+        self.assertIn("MAIN TEMPLATE END", rendered)
+
+    def test_using_partial_before_definition(self):
+        """
+        Test using a partial before it's defined in the template.
+        """
+        template_content = """
+        {% load partials %}
+        TEMPLATE START
+        {% partial skeleton-partial %}
+        MIDDLE CONTENT
+        {% partialdef skeleton-partial %}
+        THIS IS THE SKELETON PARTIAL CONTENT
+        {% endpartialdef %}
+        TEMPLATE END
+        """
+        engine = engines["django"]
+        template = engine.from_string(template_content)
+        rendered = template.render()
+        self.assertIn("TEMPLATE START", rendered)
+        self.assertIn("THIS IS THE SKELETON PARTIAL CONTENT", rendered)
+        self.assertIn("MIDDLE CONTENT", rendered)
+        self.assertIn("TEMPLATE END", rendered)
+
 
 class ChildCachedLoaderTest(TestCase):
     def test_child_cached_loader(self):
