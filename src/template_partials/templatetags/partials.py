@@ -165,8 +165,12 @@ class SubDictionaryWrapper:
         except TypeError:
             # Pre Django 5.1 storage.
             partials_content = getattr(self.parent_dict, self.lookup_key, {})
-
-        return partials_content[key]
+        try:
+            return partials_content[key]
+        except KeyError:
+            raise template.TemplateSyntaxError(
+                f"You are trying to access an undefined partial '{key}'"
+            )
 
 
 # Define the partial tag to render the partial content.
