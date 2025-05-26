@@ -155,21 +155,18 @@ class SubDictionaryWrapper:
         self.lookup_key = lookup_key
 
     def __getitem__(self, key):
-        return self.parent_dict[self.lookup_key][key]
+        try:
+            partials_content = self.parent_dict[self.lookup_key]
+        except KeyError:
+            # Missing key. probably no partial was defined at all.
+            raise template.TemplateSyntaxError(
+                f"You have not defined any partial. You are trying to access '{key}' partial"
+            )
+        except TypeError:
+            # Pre Django 5.1 storage.
+            partials_content = getattr(self.parent_dict, self.lookup_key, {})
 
-
-class OriginPartialContentsWrapper:
-    """
-    Wrap parser.origin to allow deferred access to partial_contents.
-    """
-
-    def __init__(self, origin):
-        self.origin = origin
-
-    def __getitem__(self, key):
-        if not hasattr(self.origin, "partial_contents"):
-            self.origin.partial_contents = {}
-        return self.origin.partial_contents[key]
+        return partials_content[key]
 
 
 # Define the partial tag to render the partial content.
@@ -194,6 +191,6 @@ def partial_func(parser, token):
         extra_data = getattr(parser, "extra_data")
         partial_mapping = SubDictionaryWrapper(extra_data, "template-partials")
     except AttributeError:
-        partial_mapping = OriginPartialContentsWrapper(parser.origin)
+        partial_mapping = SubDictionaryWrapper(parser.origin, "partial_contents")
 
     return RenderPartialNode(partial_name, partial_mapping=partial_mapping)
