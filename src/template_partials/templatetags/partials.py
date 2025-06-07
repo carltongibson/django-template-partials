@@ -159,20 +159,17 @@ class SubDictionaryWrapper:
             # Try Django 5.1+ dict-based storage first
             partials_content = self.parent_dict[self.lookup_key]
         except KeyError:
-            # No partials defined at all in Django 5.1+
             raise template.TemplateSyntaxError(
                 f"You have not defined any partial. You are trying to access '{key}' partial"
             )
         except TypeError:
             # Fall back to pre-Django 5.1 object-based storage
             if not hasattr(self.parent_dict, self.lookup_key):
-                # No partials defined at all in pre-5.1 (unknown source case)
                 raise template.TemplateSyntaxError(
                     f"You have not defined any partial. You are trying to access '{key}' partial"
                 )
             partials_content = getattr(self.parent_dict, self.lookup_key)
 
-        # At this point, partials_content should exist but might not contain the requested key
         try:
             return partials_content[key]
         except KeyError:
