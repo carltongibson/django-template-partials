@@ -160,15 +160,16 @@ class SubDictionaryWrapper:
             partials_content = self.parent_dict[self.lookup_key]
         except KeyError:
             raise template.TemplateSyntaxError(
-                f"You have not defined any partial. You are trying to access '{key}' partial"
+                f"No partials are defined. You are trying to access '{key}' partial"
             )
         except TypeError:
             # Fall back to pre-Django 5.1 object-based storage
-            if not hasattr(self.parent_dict, self.lookup_key):
+            try:
+                partials_content = getattr(self.parent_dict, self.lookup_key)
+            except AttributeError:
                 raise template.TemplateSyntaxError(
-                    f"You have not defined any partial. You are trying to access '{key}' partial"
+                    f"No partials are defined. You are trying to access '{key}' partial"
                 )
-            partials_content = getattr(self.parent_dict, self.lookup_key)
 
         try:
             return partials_content[key]
