@@ -365,3 +365,32 @@ class ResponseWithMultiplePartsTests(TestCase):
         for response in [response1, response2, response3]:
             self.assertIn(b"Main Content", response.content)
             self.assertIn(b"Extra Content", response.content)
+
+
+class ResponseContextWithPartialTests(TestCase):
+    """Ensure that the Django test client captures context when a view renders a partial template ("template.html#partial")."""
+
+    def test_response_context_available_for_partial_template(self):
+        from types import ModuleType
+
+        from django.urls import path, reverse
+
+        # Define a simple view that returns a partial template.
+        def sample_view(request):
+            return HttpResponse(
+                render_to_string("example.html#test-partial", {"foo": "bar"})
+            )
+
+        # Dynamically create a URLs module for this test.
+        urls_module = ModuleType("partial_test_urls")
+        urls_module.urlpatterns = [path("sample/", sample_view, name="sample-view")]
+
+        with override_settings(
+            ROOT_URLCONF=urls_module,
+        ):
+            response = self.client.get(reverse("sample-view"))
+
+        # The test client should have attached context so that we can inspect it.
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.context)
+        self.assertEqual(response.context["foo"], "bar")

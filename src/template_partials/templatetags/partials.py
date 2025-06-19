@@ -1,41 +1,52 @@
 import warnings
 
 from django import template
+from django.template import Template
 
 register = template.Library()
 
 
-class TemplateProxy:
+class TemplateProxy(Template):
     """
     Wraps nodelist as partial, in order to bind context.
     """
 
     def __init__(self, nodelist, origin, name):
-        self.nodelist = nodelist
-        self.origin = origin
-        self.name = name
+        # Store provided nodelist so we can return it from compile_nodelist().
+        self._provided_nodelist = nodelist
+
+        # Figure out the engine instance, falling back to default.
+        try:
+            engine = origin.loader.engine
+        except Exception:
+            engine = None
+
+        # Call parent constructor with an empty source string.
+        super().__init__("", origin=origin, name=name, engine=engine)
+
+        # The parent constructor calls compile_nodelist(), which populates
+        # self.nodelist with the value we return below.
+
+    def compile_nodelist(self):
+        """Return the pre-extracted NodeList instead of re-parsing."""
+        return self._provided_nodelist
 
     def get_exception_info(self, exception, token):
         template = self.origin.loader.get_template(self.origin.template_name)
         return template.get_exception_info(exception, token)
 
+    # Provide access to the source of the parent template. Needed for the
+    # test suite and Django's debug page. We also expose a setter so the
+    # base Template constructor can assign to it while instantiating.
+
     @property
     def source(self):
-        template = self.origin.loader.get_template(self.origin.template_name)
-        return template.source
+        return self.origin.loader.get_template(self.origin.template_name).source
 
-    def _render(self, context):
-        return self.nodelist.render(context)
-
-    def render(self, context):
-        "Display stage -- can be called many times"
-        with context.render_context.push_state(self):
-            if context.template is None:
-                with context.bind_template(self):
-                    context.template_name = self.name
-                    return self._render(context)
-            else:
-                return self._render(context)
+    @source.setter
+    def source(self, value):
+        # Accept the assignment performed by Template.__init__
+        self.__dict__["source"] = value
 
 
 class DefinePartialNode(template.Node):
