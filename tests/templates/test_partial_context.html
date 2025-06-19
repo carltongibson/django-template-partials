@@ -1,0 +1,21 @@
+{% load partials %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test Partial Context Template</title>
+  </head>
+  <body>
+    {% partialdef test_partial %}
+    <div id="test-partial-content">
+      <h1>Test Items</h1>
+      <ul>
+        {% for item in test %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endpartialdef %}
+  </body>
+</html>
