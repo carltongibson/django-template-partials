@@ -1,8 +1,13 @@
+import re
 import warnings
 
 from django import template
 
 register = template.Library()
+
+_START_TAG = re.compile(r'\{%\s*(startpartial|partialdef)\s+([\w-]+)(\s+inline)?\s*%}')
+_END_TAG_OLD = re.compile(r'\{%\s*endpartial\s*%}')
+_END_TAG = re.compile(r'\{%\s*endpartialdef\s*%}')
 
 
 class TemplateProxy:
@@ -19,10 +24,30 @@ class TemplateProxy:
         template = self.origin.loader.get_template(self.origin.template_name)
         return template.get_exception_info(exception, token)
 
+    def find_partial_source(self, full_source, partial_name):
+        """
+        Loop through the full source of the template, looking for the sought partial
+        and returning it if found, else the empty string.
+        """
+        result = ''
+        pos = 0
+        for m in _START_TAG.finditer(full_source, pos):
+            sspos, sepos = m.span()
+            starter, name, inline = m.groups()
+            end_tag = _END_TAG_OLD if starter == 'startpartial' else _END_TAG
+            endm = end_tag.search(full_source, sepos + 1)
+            assert endm, 'End tag must be present'
+            espos, eepos = endm.span()
+            if name == partial_name:
+                result = full_source[sepos:espos]
+                break
+            pos = eepos + 1
+        return result
+
     @property
     def source(self):
-        template = self.origin.loader.get_template(self.origin.template_name)
-        return template.source
+        template = self.origin.loader.get_template(self.origin.name)
+        return self.find_partial_source(template.source, self.name)
 
     def _render(self, context):
         return self.nodelist.render(context)
