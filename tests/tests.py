@@ -317,6 +317,21 @@ class PartialTagsTestCase(TestCase):
         ):
             t.render()
 
+    def test_partial_with_no_partial_name(self):
+        """
+        Test that a partial with no partial name raises a TemplateSyntaxError.
+        """
+        template = """
+        {% load partials %}
+        {% partial %}
+        """
+        engine = engines["django"]
+        with self.assertRaisesMessage(
+            TemplateSyntaxError,
+            "'partial' tag requires a single argument 'partial_name'",
+        ):
+            engine.from_string(template)
+
 
 class ChildCachedLoaderTest(TestCase):
     def test_child_cached_loader(self):
