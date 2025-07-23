@@ -189,13 +189,12 @@ def partial_func(parser, token):
 
         {% partial partial_name %}
     """
-    # Parse the tag
-    try:
-        tag_name, partial_name = token.split_contents()
-    except ValueError:
+    bits = token.split_contents()
+    if len(bits) != 2:
         raise template.TemplateSyntaxError(
-            "%r tag requires a single argument" % tag_name
+            f"'{bits[0]}' tag requires a single argument 'partial_name'"
         )
+    tag_name, partial_name = bits
 
     try:
         extra_data = getattr(parser, "extra_data")
