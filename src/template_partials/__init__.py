@@ -2,4 +2,4 @@
 Reusable named inline-partials for the Django Template Language
 """
 
-__version__ = "24.4"
+__version__ = "25.1"
