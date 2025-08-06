@@ -1,13 +1,23 @@
 import re
 import warnings
 
+import django
 from django import template
 
 register = template.Library()
 
-_START_TAG = re.compile(r'\{%\s*(startpartial|partialdef)\s+([\w-]+)(\s+inline)?\s*%}')
-_END_TAG_OLD = re.compile(r'\{%\s*endpartial\s*%}')
-_END_TAG = re.compile(r'\{%\s*endpartialdef\s*%}')
+_START_TAG = re.compile(r"\{%\s*(startpartial|partialdef)\s+([\w-]+)(\s+inline)?\s*%}")
+_END_TAG_OLD = re.compile(r"\{%\s*endpartial\s*%}")
+_END_TAG = re.compile(r"\{%\s*endpartialdef\s*%}")
+
+django_version = tuple(map(int, django.__version__.split(".")[:2]))
+if django_version >= (6, 0):
+    warnings.warn(
+        "The 'partial'and 'partialdef' template tags are now part of Django core. "
+        "You no longer need to use {% load partials %} as of Django 6.0.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
 
 class TemplateProxy:
@@ -29,14 +39,14 @@ class TemplateProxy:
         Loop through the full source of the template, looking for the sought partial
         and returning it if found, else the empty string.
         """
-        result = ''
+        result = ""
         pos = 0
         for m in _START_TAG.finditer(full_source, pos):
             sspos, sepos = m.span()
             starter, name, inline = m.groups()
-            end_tag = _END_TAG_OLD if starter == 'startpartial' else _END_TAG
+            end_tag = _END_TAG_OLD if starter == "startpartial" else _END_TAG
             endm = end_tag.search(full_source, sepos + 1)
-            assert endm, 'End tag must be present'
+            assert endm, "End tag must be present"
             espos, eepos = endm.span()
             if name == partial_name:
                 result = full_source[sepos:espos]
