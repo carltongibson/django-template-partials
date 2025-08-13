@@ -51,6 +51,11 @@ class Loader(BaseLoader):
             extra_data = getattr(template, "extra_data")
             partial_contents = extra_data.get("template-partials", {})
         except AttributeError:
+            partial_contents = None
+
+        # NOTE: This is needed at least until the end of life of Django 4.2
+        #       See https://github.com/django-components/django-components/issues/1323#issuecomment-3185252145
+        if partial_contents is None:
             try:
                 partial_contents = template.origin.partial_contents
             except AttributeError:
