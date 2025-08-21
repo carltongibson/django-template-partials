@@ -1,5 +1,9 @@
 # CHANGELOG
 
+
+* Changed internal storage key for partials from 
+  `extra_data["template-partials"]` to `extra_data["partials"]` in django 5.1+ to maintain compatibility with Django 6.0's native template support.
+
 * Deprecated passing arguments to the `inline` argument of the `partialdef`
   tag. Either use `inline` or nothing.
 
