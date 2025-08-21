@@ -14,7 +14,8 @@ django_version = tuple(map(int, django.__version__.split(".")[:2]))
 if django_version >= (6, 0):
     warnings.warn(
         "The 'partial'and 'partialdef' template tags are now part of Django core. "
-        "You no longer need to use {% load partials %} as of Django 6.0.",
+        "You no longer need to use {% load partials %} as of Django 6.0. \n"
+        "Visit https://github.com/carltongibson/django-template-partials/blob/main/Migration.md for migration instructions.",
         DeprecationWarning,
         stacklevel=2,
     )
