@@ -163,8 +163,8 @@ def _define_partial(parser, token, end_tag):
     # Store the partial nodelist in the parser.extra_data attribute, if available. (Django 5.1+)
     # Otherwise, store it on the origin.
     if hasattr(parser, "extra_data"):
-        parser.extra_data.setdefault("template-partials", {})
-        parser.extra_data["template-partials"][partial_name] = TemplateProxy(
+        parser.extra_data.setdefault("partials", {})
+        parser.extra_data["partials"][partial_name] = TemplateProxy(
             nodelist, parser.origin, partial_name
         )
     else:
@@ -233,7 +233,7 @@ def partial_func(parser, token):
 
     try:
         extra_data = getattr(parser, "extra_data")
-        partial_mapping = SubDictionaryWrapper(extra_data, "template-partials")
+        partial_mapping = SubDictionaryWrapper(extra_data, "partials")
     except AttributeError:
         partial_mapping = SubDictionaryWrapper(parser.origin, "partial_contents")
 
