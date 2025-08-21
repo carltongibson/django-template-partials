@@ -205,9 +205,9 @@ class PartialTagsTestCase(TestCase):
         """Partials defer to their source template for source code."""
         engine = engines["django"]
         partial = engine.get_template("example.html#test-partial")
-        self.assertEqual(partial.template.source, '\nTEST-PARTIAL-CONTENT\n')
+        self.assertEqual(partial.template.source, "\nTEST-PARTIAL-CONTENT\n")
         partial = engine.get_template("example.html#inline-partial")
-        self.assertEqual(partial.template.source, '\nINLINE-CONTENT\n')
+        self.assertEqual(partial.template.source, "\nINLINE-CONTENT\n")
 
     def test_chained_exception_forwarded(self):
         """TemplateDoesNotExist exceptions are chained with the tried attribute."""
@@ -378,3 +378,33 @@ class ResponseWithMultiplePartsTests(TestCase):
         for response in [response1, response2, response3]:
             self.assertIn(b"Main Content", response.content)
             self.assertIn(b"Extra Content", response.content)
+
+    def test_load_partial_deprecation_warning(self):
+        from unittest import mock
+
+        with mock.patch(
+            "template_partials.templatetags.partials.django.__version__", "6.0.0"
+        ):
+            import sys
+
+            if "template_partials.templatetags.partials" in sys.modules:
+                del sys.modules["template_partials.templatetags.partials"]
+
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                import template_partials.templatetags.partials  # noqa: F401
+
+                deprecation_warnings = [
+                    warning
+                    for warning in w
+                    if issubclass(warning.category, DeprecationWarning)
+                ]
+                self.assertEqual(len(deprecation_warnings), 1)
+                self.assertIn(
+                    "The 'partial'and 'partialdef' template tags are now part of Django core",
+                    str(deprecation_warnings[0].message),
+                )
+                self.assertIn(
+                    "You no longer need to use {% load partials %}",
+                    str(deprecation_warnings[0].message),
+                )

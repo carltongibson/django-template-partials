@@ -49,7 +49,7 @@ class Loader(BaseLoader):
         # Use that, falling back to reference on the origin.
         try:
             extra_data = getattr(template, "extra_data")
-            partial_contents = extra_data.get("template-partials", {})
+            partial_contents = extra_data.get("partials", {})
         except AttributeError:
             try:
                 partial_contents = template.origin.partial_contents
