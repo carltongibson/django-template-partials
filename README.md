@@ -4,6 +4,12 @@
 
 Reusable named inline partials for the Django Template Language.
 
+Template Partials were added to Django in version 6.0. You should use that in new projects: 
+
+* https://docs.djangoproject.com/en/dev/releases/6.0/#template-partials
+
+Check out the [Migration Guide](https://github.com/carltongibson/django-template-partials/blob/main/Migration.md) if you're updating to the Django version. 
+
 ## Watch the talk
 
 I introduced `django-template-partials` in my DjangoCon Europe 2023 talk in Edinburgh.
