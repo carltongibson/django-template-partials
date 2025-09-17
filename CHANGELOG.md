@@ -1,11 +1,26 @@
 # CHANGELOG
 
 
+## UNRELEASED
+
 * Changed internal storage key for partials from 
   `extra_data["template-partials"]` to `extra_data["partials"]` in django 5.1+ to maintain compatibility with Django 6.0's native template support.
 
+
+## 25.1 (2025-08-06)
+
+* Improved fetching partial source for debug views.
+
+* Refactor loader and partials handling to support Django 5.1+ extra_data on
+  the parser instance.
+
+* Updated tox configuration for the latest Python and Django versions.
+
+* Aligned TemplateProxy render method to Django Template for compatibility with
+  django-components.
+
 * Deprecated passing arguments to the `inline` argument of the `partialdef`
-  tag. Either use `inline` or nothing.
+  tag. Either use the literal `inline` or nothing.
 
 ## 24.4 (2024-08-16)
 
