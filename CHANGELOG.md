@@ -1,5 +1,12 @@
 # CHANGELOG
 
+
+## UNRELEASED
+
+* Changed internal storage key for partials from 
+  `extra_data["template-partials"]` to `extra_data["partials"]` in django 5.1+ to maintain compatibility with Django 6.0's native template support.
+
+
 ## 25.1 (2025-08-06)
 
 * Improved fetching partial source for debug views.

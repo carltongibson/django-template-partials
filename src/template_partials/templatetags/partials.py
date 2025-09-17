@@ -1,13 +1,24 @@
 import re
 import warnings
 
+import django
 from django import template
 
 register = template.Library()
 
-_START_TAG = re.compile(r'\{%\s*(startpartial|partialdef)\s+([\w-]+)(\s+inline)?\s*%}')
-_END_TAG_OLD = re.compile(r'\{%\s*endpartial\s*%}')
-_END_TAG = re.compile(r'\{%\s*endpartialdef\s*%}')
+_START_TAG = re.compile(r"\{%\s*(startpartial|partialdef)\s+([\w-]+)(\s+inline)?\s*%}")
+_END_TAG_OLD = re.compile(r"\{%\s*endpartial\s*%}")
+_END_TAG = re.compile(r"\{%\s*endpartialdef\s*%}")
+
+django_version = tuple(map(int, django.__version__.split(".")[:2]))
+if django_version >= (6, 0):
+    warnings.warn(
+        "The 'partial'and 'partialdef' template tags are now part of Django core. "
+        "You no longer need to use {% load partials %} as of Django 6.0. \n"
+        "Visit https://github.com/carltongibson/django-template-partials/blob/main/Migration.md for migration instructions.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
 
 class TemplateProxy:
@@ -29,14 +40,14 @@ class TemplateProxy:
         Loop through the full source of the template, looking for the sought partial
         and returning it if found, else the empty string.
         """
-        result = ''
+        result = ""
         pos = 0
         for m in _START_TAG.finditer(full_source, pos):
             sspos, sepos = m.span()
             starter, name, inline = m.groups()
-            end_tag = _END_TAG_OLD if starter == 'startpartial' else _END_TAG
+            end_tag = _END_TAG_OLD if starter == "startpartial" else _END_TAG
             endm = end_tag.search(full_source, sepos + 1)
-            assert endm, 'End tag must be present'
+            assert endm, "End tag must be present"
             espos, eepos = endm.span()
             if name == partial_name:
                 result = full_source[sepos:espos]
@@ -153,8 +164,8 @@ def _define_partial(parser, token, end_tag):
     # Store the partial nodelist in the parser.extra_data attribute, if available. (Django 5.1+)
     # Otherwise, store it on the origin.
     if hasattr(parser, "extra_data"):
-        parser.extra_data.setdefault("template-partials", {})
-        parser.extra_data["template-partials"][partial_name] = TemplateProxy(
+        parser.extra_data.setdefault("partials", {})
+        parser.extra_data["partials"][partial_name] = TemplateProxy(
             nodelist, parser.origin, partial_name
         )
     else:
@@ -223,7 +234,7 @@ def partial_func(parser, token):
 
     try:
         extra_data = getattr(parser, "extra_data")
-        partial_mapping = SubDictionaryWrapper(extra_data, "template-partials")
+        partial_mapping = SubDictionaryWrapper(extra_data, "partials")
     except AttributeError:
         partial_mapping = SubDictionaryWrapper(parser.origin, "partial_contents")
 
