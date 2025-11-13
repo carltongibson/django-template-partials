@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## Unreleased
+
+* Fix import-time crash on Django 6.0b1 ([Issue #88](https://github.com/carltongibson/django-template-partials/issues/88)).
 
 ## 25.2 (2025-09-17)
 

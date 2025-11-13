@@ -10,8 +10,7 @@ _START_TAG = re.compile(r"\{%\s*(startpartial|partialdef)\s+([\w-]+)(\s+inline)?
 _END_TAG_OLD = re.compile(r"\{%\s*endpartial\s*%}")
 _END_TAG = re.compile(r"\{%\s*endpartialdef\s*%}")
 
-django_version = tuple(map(int, django.__version__.split(".")[:2]))
-if django_version >= (6, 0):
+if django.VERSION >= (6, 0):
     warnings.warn(
         "The 'partial'and 'partialdef' template tags are now part of Django core. "
         "You no longer need to use {% load partials %} as of Django 6.0. \n"
