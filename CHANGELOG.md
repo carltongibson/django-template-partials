@@ -1,8 +1,10 @@
 # CHANGELOG
 
-## Unreleased
+## 25.3 (2025-11-14)
 
 * Fix import-time crash on Django 6.0b1 ([Issue #88](https://github.com/carltongibson/django-template-partials/issues/88)).
+
+* Added Trove classifier for Python 3.14.
 
 ## 25.2 (2025-09-17)
 
