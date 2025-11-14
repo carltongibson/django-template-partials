@@ -1,12 +1,15 @@
+import sys
 import warnings
 from pathlib import Path
 from textwrap import dedent
+from unittest import mock
 
 import django.template
 from django.http import HttpResponse
 from django.template import EngineHandler, TemplateSyntaxError, engines
 from django.template.loader import render_to_string
 from django.test import TestCase, override_settings
+
 from template_partials.apps import wrap_loaders
 
 
@@ -379,32 +382,26 @@ class ResponseWithMultiplePartsTests(TestCase):
             self.assertIn(b"Main Content", response.content)
             self.assertIn(b"Extra Content", response.content)
 
+    @mock.patch("django.VERSION", (6, 0))
     def test_load_partial_deprecation_warning(self):
-        from unittest import mock
+        if "template_partials.templatetags.partials" in sys.modules:
+            del sys.modules["template_partials.templatetags.partials"]
 
-        with mock.patch(
-            "template_partials.templatetags.partials.django.__version__", "6.0.0"
-        ):
-            import sys
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            import template_partials.templatetags.partials  # noqa: F401
 
-            if "template_partials.templatetags.partials" in sys.modules:
-                del sys.modules["template_partials.templatetags.partials"]
-
-            with warnings.catch_warnings(record=True) as w:
-                warnings.simplefilter("always")
-                import template_partials.templatetags.partials  # noqa: F401
-
-                deprecation_warnings = [
-                    warning
-                    for warning in w
-                    if issubclass(warning.category, DeprecationWarning)
-                ]
-                self.assertEqual(len(deprecation_warnings), 1)
-                self.assertIn(
-                    "The 'partial'and 'partialdef' template tags are now part of Django core",
-                    str(deprecation_warnings[0].message),
-                )
-                self.assertIn(
-                    "You no longer need to use {% load partials %}",
-                    str(deprecation_warnings[0].message),
-                )
+            deprecation_warnings = [
+                warning
+                for warning in w
+                if issubclass(warning.category, DeprecationWarning)
+            ]
+            self.assertEqual(len(deprecation_warnings), 1)
+            self.assertIn(
+                "The 'partial'and 'partialdef' template tags are now part of Django core",
+                str(deprecation_warnings[0].message),
+            )
+            self.assertIn(
+                "You no longer need to use {% load partials %}",
+                str(deprecation_warnings[0].message),
+            )
